@@ -1,0 +1,51 @@
+# =========================
+# .NET / F# build outputs
+# =========================
+bin/
+obj/
+Debug/
+Release/
+TestResults/
+*.user
+*.userosscache
+*.suo
+*.pidb
+*.svclog
+*.pdb
+*.mdb
+
+# =========================
+# Rider / JetBrains IDE
+# =========================
+.idea/
+*.sln.iml
+
+# =========================
+# Visual Studio Code
+# =========================
+.vscode/
+.history/
+
+# =========================
+# Packages
+# =========================
+*.nupkg
+*.snupkg
+.packages/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS-specific
+# =========================
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# =========================
+# Optional for NuGet restore
+# =========================
+project.lock.json

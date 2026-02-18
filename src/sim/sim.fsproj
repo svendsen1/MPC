@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Message.fs" />
+    <Compile Include="Adversary.fs" />
+    <Compile Include="Network.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MPCCore\MPCCore.fsproj" />
+    <ProjectReference Include="..\Protocols\Protocols.fsproj" />
+  </ItemGroup>
+
+</Project>
