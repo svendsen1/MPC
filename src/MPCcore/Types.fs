@@ -2,4 +2,7 @@ namespace MPCcore
 
 type PlayerId = int
 
-type Player = {Id: int; Knows: Set<int>}
+type Player = { 
+            PlayerId: PlayerId; 
+            Knows: Map<string,int>
+                }
