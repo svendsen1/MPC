@@ -13,6 +13,9 @@ TestResults/
 *.svclog
 *.pdb
 *.mdb
+*.json
+*.sln
+*.slnx
 
 # =========================
 # Rider / JetBrains IDE
