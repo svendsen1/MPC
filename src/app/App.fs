@@ -16,4 +16,6 @@ module App =
         let sharesList = KShare 10 10 playersInt
         sharesList |> List.iter (fun (x,y) -> printf " %d,%d " x y)
 
+        //Share the secrect 
+
         0

@@ -1,4 +1,1 @@
-namespace Core
-
-module Player = 
-    open MPCcore
+namespace MPCcore
