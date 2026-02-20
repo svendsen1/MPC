@@ -11,6 +11,7 @@ Use examples liberally, and show the expected output if you can. It's helpful to
 
 
 ## Roadmap - Structure
+```
 MPC
 │
 ├── src/
@@ -23,7 +24,7 @@ MPC
 └── tests/
     ├── CoreTests/
     └── ProtocolTests/
-
+```
 
 ## Authors and acknowledgment
 s235260 and 235244
