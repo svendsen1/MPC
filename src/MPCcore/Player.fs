@@ -6,4 +6,5 @@ module PlayerModule =
         {
             PlayerId = id
             Knows = knowsMap
+            ResV = None
         }

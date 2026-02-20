@@ -24,8 +24,12 @@ module App =
 
         //Share the secrect 
         let playersList = shareValsK "s" playersList sList
+        let playersList = shareValsK "t" playersList tList
         playersList |> List.iter (fun x -> 
-            printf "Player: %d " x.PlayerId;
-            Map.iter (fun k v -> printfn "%A %d" k v) x.Knows
+            printf "Player_%d " (x.PlayerId + 1);
+            Map.iter (fun k v -> printf "(%A,%d) " k v) x.Knows;
+            printfn ""
         )
+
+        
         0

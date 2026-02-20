@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="KShare\KofKshare.fs" />
+    <Compile Include="Add\Addition.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,9 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/App/App.fsproj" />
-    <Project Path="src/MPCCore/MPCCore.fsproj" />
-    <Project Path="src/Experiments/Experiments.fsproj" />
-    <Project Path="src/Protocols/Protocols.fsproj" />
-    <Project Path="src/Sim/Sim.fsproj" />
-  </Folder>
-</Solution>

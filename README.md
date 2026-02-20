@@ -1,7 +1,7 @@
 # MPC
 
 ## To run
-You need atleat .NET v. 10.0 to run the project.
+You need atleat .NET v. 9.0.2 to run the project.
 
 ## Name
 MPC PoC
