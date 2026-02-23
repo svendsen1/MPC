@@ -1,8 +1,7 @@
 namespace Protocols
 
-open MPCcore
-
 module KofKshare =
+    open MPCcore
     let rand = System.Random()
 
     // Spltts NO1 into k random shares
