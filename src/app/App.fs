@@ -3,6 +3,7 @@ namespace App
 module App =
     open MPCcore
     open Protocols.KofKshare
+    open Protocols.Addition
 
     [<EntryPoint>]
     let main argv =
@@ -25,11 +26,14 @@ module App =
         //Share the secrect 
         let playersList = shareValsK "s" playersList sList
         let playersList = shareValsK "t" playersList tList
+        
+        //Use the Add protocol
+        let playersList = add playersList
         playersList |> List.iter (fun x -> 
             printf "Player_%d " (x.PlayerId + 1);
             Map.iter (fun k v -> printf "(%A,%d) " k v) x.Knows;
+            printf "v_sum %A" x.ResV;  
             printfn ""
         )
-
         
         0
