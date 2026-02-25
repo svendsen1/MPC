@@ -39,3 +39,47 @@ module SecretShare =
             | [], [], []                        ->  players
             | _                                 -> failwith "Mismatch in list-lengths"
         distShareRec distList sList tList players 1
+
+    let pairs n =
+        [1..n]
+        |> List.collect (fun i ->
+            [1..n] |> List.map (fun j -> (i, j))
+        )
+    
+    let getPairs (p: Player) = 
+        let keys =
+            p.Knows
+            |> Map.keys
+            |> Seq.toList
+
+        let sIndices =
+            keys
+            |> List.choose (fun k ->
+                if k.StartsWith("s") then
+                    Some (int (k.Substring(1)))
+                else None)
+
+        let tIndices =
+            keys
+            |> List.choose (fun k ->
+                if k.StartsWith("t") then
+                    Some (int (k.Substring(1)))
+                else None)
+
+        [ for i in sIndices do
+            for j in tIndices do
+                yield (i, j) ]
+    
+    let intersection list1 list2 =
+        Set.intersect (Set.ofList list1) (Set.ofList list2)
+        |> Set.toList
+        
+    let makeU (playerCount: int) (players: list<Player>) = 
+        let unTakenPairs = pairs playerCount
+        let rec iteratePlayers (players: list<Player>) (unTakenPairs: list<int*int>) (acc: list<list<int*int>>) =
+            match players with
+            |   p::tail ->  let playerPairs = getPairs p
+                            let U = intersection unTakenPairs playerPairs
+                            iteratePlayers tail (List.except (List.toSeq U) unTakenPairs) (acc @ [U])
+            | []        ->  acc
+        iteratePlayers players unTakenPairs []

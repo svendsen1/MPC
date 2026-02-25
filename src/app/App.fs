@@ -26,11 +26,15 @@ module App =
 
         let distributionList = SecretShare.tSetShare playersList adversaryStructure 
 
-        //distributionList |> List.iter (fun x -> 
-        //    printfn "Distribution Set: %A" (Set.toList x)
-        //)
-
         let playersList = SecretShare.distributeShares distributionList sList tList playersList
+
+        let Us = SecretShare.makeU playersInt playersList
+        Us |> List.iter (fun x -> 
+            printf "U: ";
+            List.iter (fun (x,y) -> printf "(%d,%d)" x y) x;
+            printfn ""
+            )   
+
         
         // Print the Players and their known values
         playersList |> List.iter (fun x -> 
