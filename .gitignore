@@ -52,3 +52,5 @@ desktop.ini
 # Optional for NuGet restore
 # =========================
 project.lock.json
+
+.fake

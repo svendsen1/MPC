@@ -10,9 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MPCCore\MPCCore.fsproj" />
-    <ProjectReference Include="..\Protocols\Protocols.fsproj" />
-    <ProjectReference Include="..\Sim\Sim.fsproj" />
+    <ProjectReference Include="../MPCcore/MPCcore.fsproj" />
+    <ProjectReference Include="../protocols/protocols.fsproj" />
+    <ProjectReference Include="../sim/sim.fsproj" />
   </ItemGroup>
 
 </Project>
