@@ -5,14 +5,11 @@ module SecrecyStructure =
     type SecrecyStructure = Set<Set<Player>>
 
     // No one player can reconstruct the secret
-    let singletonSecrectStructure (players: Player list) = 
-        let secrectStructure: SecrecyStructure = Set.empty
-        let rec putInSet players = 
-            match players with
-            | p::tail ->    secrectStructure.Add (Set.singleton p)
-                            putInSet tail
-            | [] ->         0
-            | _ -> failwith "Not a list of players"
-        secrectStructure
+    let singletonSecretStructure (players: Player list) = 
+        let rec putInSet (playerList: Player list) (acc: SecrecyStructure) =
+            match playerList with
+            | p :: tail -> putInSet tail (acc.Add (Set.singleton p))
+            | [] -> acc
+        putInSet players Set.empty
 
     // TODO: Make custom secret structures
