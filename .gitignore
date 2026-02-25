@@ -16,6 +16,7 @@ TestResults/
 *.json
 *.sln
 *.slnx
+*.fsproj
 
 # =========================
 # Rider / JetBrains IDE
