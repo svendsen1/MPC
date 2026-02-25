@@ -29,18 +29,16 @@ module App =
         let playersList = SecretShare.distributeShares distributionList sList tList playersList
 
         let Us = SecretShare.makeU playersInt playersList
-        Us |> List.iter (fun x -> 
-            printf "U: ";
-            List.iter (fun (x,y) -> printf "(%d,%d)" x y) x;
-            printfn ""
-            )   
 
-        
+        let playersList = PassiveMul.passiveMul playersList Us
+
+        let playersList = SecretShare.shareVm playersList
+
         // Print the Players and their known values
         playersList |> List.iter (fun x -> 
             printf "Player_%d " (x.PlayerId + 1);
             Map.iter (fun k v -> printf "(%A,%d) " k v) x.Knows;
-            printf "v%A" x.V_m  
+            printf "v%A sum:%d" x.V_m (List.sum x.V_m)
             printfn ""
         )
         
