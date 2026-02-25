@@ -13,7 +13,7 @@ module App =
         let playersInt = players |> int
 
         // Make a list of players
-        let playersList = List.init playersInt (fun k -> (PlayerModule.makePlayer k []))
+        let playersList = List.init playersInt (fun k -> PlayerModule.makePlayer k [])
 
         //Split the numbers into shares
         let sList = KofKshare.KShare 10 playersInt
