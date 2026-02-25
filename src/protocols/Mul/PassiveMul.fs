@@ -15,6 +15,7 @@ module PassiveMul =
     let passiveMul (players: list<Player>) (Us: list<list<int*int>>) = 
         let rec passiveInner (players: list<Player>) (Us: list<list<int*int>>) (acc: list<Player>) =
             match players, Us with
-            | p::pTail, U::restU -> passiveInner pTail restU ((pasMulPlayer p U)::acc)
+            | p::pTail, uSet::restU -> passiveInner pTail restU ((pasMulPlayer p uSet)::acc)
             | [],[]              -> List.rev acc
+            | _                  -> failwith "List length mismatch - PassiveMul"
         passiveInner players Us []
