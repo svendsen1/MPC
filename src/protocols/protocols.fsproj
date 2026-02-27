@@ -9,6 +9,7 @@
     <Compile Include="KShare\KofKshare.fs" />
     <Compile Include="Add\Addition.fs" />
     <Compile Include="VSS\SecretShare.fs" />
+    <Compile Include="Mul\PassiveMul.fs" />
   </ItemGroup>
 
   <ItemGroup>
