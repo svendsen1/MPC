@@ -12,16 +12,32 @@ let rec checkSums (players: Player list) (sum: int) =
     | p::tail when (List.sum p.V_m) = sum -> checkSums tail sum
     | _ -> false
 
+let getShares (player: Player) (name: string) = 
+    let rec getRec (knowsList: list<string*int>) (acc: list<int>) =
+        match knowsList with
+        |   [] -> acc
+        |   (str, v)::rest when str.Chars 0 = name.Chars 0 -> getRec rest (v::acc)
+        |   _::rest -> getRec rest acc
+    getRec (player.Knows |> Map.toList) []
+
+let rec canRecunstruct (players: Player list) (secret: int) (name: string)= 
+    match players with
+    | [] -> false
+    | p::_ when List.sum (getShares p name) = secret -> true
+    | p::tail -> canRecunstruct tail secret name
+
 [<Fact>]
 let ``Addition`` () =
     let playersInt = 5
+    let secret1 = 10
+    let secret2 = 20
 
     // Make a list of players
     let playersList = List.init playersInt (fun k -> PlayerModule.makePlayer k [])
 
     //Split the numbers into shares
-    let sList = KofKshare.KShare 10 playersInt
-    let tList = KofKshare.KShare 20 playersInt
+    let sList = KofKshare.KShare secret1 playersInt
+    let tList = KofKshare.KShare secret2 playersInt
 
     //Share the secrect 
     let playersList = KofKshare.shareValsK "s" playersList sList
@@ -33,21 +49,23 @@ let ``Addition`` () =
     //Share the v_m values
     let playersList = SecretShare.shareVm playersList
     
-    Assert.True(checkSums playersList 30)
+    let sum = secret1 + secret2
+    Assert.True(checkSums playersList sum)
+    Assert.False(canRecunstruct playersList secret1 "s")
+    Assert.False(canRecunstruct playersList secret2 "t")
 
 [<Fact>]
 let ``Passive Mul`` () = 
     let playersInt = 4
+    let secret1 = 10
+    let secret2 = 20
 
     // Make a list of players
     let playersList = List.init playersInt (fun k -> (PlayerModule.makePlayer k []))
 
     //Split the numbers into shares
-    let sList = KofKshare.KShare 10 playersInt
-    //sList |> List.iter (fun (x) -> printf " %d " x)
-
-    let tList = KofKshare.KShare 20 playersInt
-    //tList |> List.iter (fun (x) -> printf " %d " x)
+    let sList = [1;2;3;4]
+    let tList = [4;5;6;5]
 
     let adversaryStructure= SecrecyStructure.singletonSecretStructure playersList
 
@@ -62,3 +80,6 @@ let ``Passive Mul`` () =
     let playersList = SecretShare.shareVm playersList
 
     Assert.True(checkSums playersList 200)
+
+    Assert.False(canRecunstruct playersList secret1 "s")
+    Assert.False(canRecunstruct playersList secret2 "t")
