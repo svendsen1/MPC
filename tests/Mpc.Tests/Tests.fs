@@ -20,11 +20,42 @@ let getShares (player: Player) (name: string) =
         |   _::rest -> getRec rest acc
     getRec (player.Knows |> Map.toList) []
 
-let rec canRecunstruct (players: Player list) (secret: int) (name: string)= 
+let rec canRecunstructBrute (players: Player list) (secret: int) (name: string)= 
     match players with
     | [] -> false
     | p::_ when List.sum (getShares p name) = secret -> true
-    | p::tail -> canRecunstruct tail secret name
+    | p::tail -> canRecunstructBrute tail secret name
+
+let getCollectiveKnowledge (playerSet: Set<Player>) (playersList: list<Player>) = 
+    let playerToRec = Set.toList playerSet
+    let rec setInner (playersToRec: list<Player>) (collectiveKonwledge: list<string*int>) =
+        match playersToRec with
+        | [] -> collectiveKonwledge
+        | p::rest ->    let player = playersList |> List.find (fun x -> x.PlayerId = p.PlayerId)
+                        let knowledge = Map.toList player.Knows
+                        setInner rest (knowledge@collectiveKonwledge)
+    setInner (playerSet |> Set.toList) []
+
+let canRecunstruct (players: Player list) (secStruct: SecrecyStructure.SecrecyStructure) (noPlayers: int) = 
+    //
+    let playerSets = Set.toList secStruct
+    let rec recunstructInner (playerSets: Set<Player> list) =
+        match playerSets with
+        |   []  -> false 
+        |   set::rest ->    let knows = getCollectiveKnowledge set players
+                            let uniqueSorted =
+                                knows
+                                |> List.distinct
+                                |> List.sort
+                            let sShares = uniqueSorted |> List.filter (fun (name,_) -> name.StartsWith("s"))
+                                                             |> List.length
+                            let tShares = uniqueSorted |> List.filter (fun (name,_) -> name.StartsWith("t"))
+                                                             |> List.length
+                            if sShares = noPlayers || tShares = noPlayers then
+                                false
+                            else
+                                recunstructInner rest
+    recunstructInner playerSets
 
 [<Fact>]
 let ``Addition`` () =
@@ -51,8 +82,9 @@ let ``Addition`` () =
     
     let sum = secret1 + secret2
     Assert.True(checkSums playersList sum)
-    Assert.False(canRecunstruct playersList secret1 "s")
-    Assert.False(canRecunstruct playersList secret2 "t")
+    
+    Assert.False(canRecunstructBrute playersList secret1 "s")
+    Assert.False(canRecunstructBrute playersList secret2 "t")
 
 [<Fact>]
 let ``Passive Mul`` () = 
@@ -61,7 +93,7 @@ let ``Passive Mul`` () =
     let secret2 = 20
 
     // Make a list of players
-    let playersList = List.init playersInt (fun k -> (PlayerModule.makePlayer k []))
+    let playersList = List.init playersInt (fun k -> PlayerModule.makePlayer k [])
 
     //Split the numbers into shares
     let sList = [1;2;3;4]
@@ -81,5 +113,4 @@ let ``Passive Mul`` () =
 
     Assert.True(checkSums playersList 200)
 
-    Assert.False(canRecunstruct playersList secret1 "s")
-    Assert.False(canRecunstruct playersList secret2 "t")
+    Assert.False(canRecunstruct playersList adversaryStructure playersInt)
