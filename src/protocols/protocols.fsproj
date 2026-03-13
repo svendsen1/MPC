@@ -10,6 +10,9 @@
     <Compile Include="Add\Addition.fs" />
     <Compile Include="VSS\SecretShare.fs" />
     <Compile Include="Mul\PassiveMul.fs" />
+    <Compile Include="CRT\CRTShare.fs" />
+    <Compile Include="CRT\CRTReconstruct.fs" />
+    <Compile Include="CRT\ExtendMath.fs" />
   </ItemGroup>
 
   <ItemGroup>
