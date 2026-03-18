@@ -1,6 +1,6 @@
-namespace protocols
+namespace Protocols
 
-module ExtenMath =
+module ExtendMath =
 
     open System.Numerics
     open System.Security.Cryptography
@@ -33,6 +33,6 @@ module ExtenMath =
             result <- bigint(bytes) |> abs
         result
     
-    let extGCD = extGcd 11I 13I
-    let modI = modInverse 11I 13I
-    let biGINT = randomBigint 137I
+    // Compute product of all elements in a list
+    let product (xs: bigint list) : bigint =
+        List.fold (*) 1I xs
