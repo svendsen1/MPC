@@ -33,3 +33,16 @@ let ``Share and Reconstruct`` () =
     Assert.True((L+1I) * p0 < pAll)
     Assert.True((recoveredSecret = secret))
     printfn "CRT Share and Recover"
+
+[<Fact>]
+let ``King Reconstruct From example`` () =
+    let pl = {P0 = 101I; Moduli = [103I; 107I; 109I] ; L = 30I}
+    let m = CRTShare.reconstruct [59I; 19I; 11I] pl
+
+    let mBar = CRTOnline.reFormat m pl.P0 2I
+    printfn "m -> %A" m
+    printfn "mbar -> %A" mBar
+
+    let res = CRTShare.reconstruct [102I; 86I; 78I] pl
+    printfn "res -> %A" res
+    Assert.True((res = 9I))
