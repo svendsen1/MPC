@@ -57,5 +57,8 @@ let ``Offline shares`` () =
 
     let parties = CRTOffline.computeShares parties schemeParams
 
-    CRTOffline.printAllReceivedShares parties
+    let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
+    let parties = CRTOffline.compputeMaskingPairs parties vandemonde
+
+    CRTOffline.printAllRs parties
 

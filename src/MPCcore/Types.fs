@@ -30,4 +30,9 @@ type Party = {
     ReceivedSt : bigint list
     ReceivedS2t : bigint list
     MaskPool : MaskPair list 
+
+    Rt : bigint list
+    R2t : bigint list
 }
+
+type Vmatrix = bigint list list

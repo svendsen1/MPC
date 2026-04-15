@@ -33,6 +33,11 @@ module ExtendMath =
             result <- bigint(bytes) |> abs
         result
     
-    // Compute product of all elements in a list
+    /// Compute product of all elements in a list
     let product (xs: bigint list) : bigint =
         List.fold (*) 1I xs
+    
+    /// Compute the power of 2 ints. Exponential opp is only allowed on floats, so convertion needed
+    let pwr (x: int) (y: int) = 
+        let result = float(x) ** float(y)
+        bigint(result)
