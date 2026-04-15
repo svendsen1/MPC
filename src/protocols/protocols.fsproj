@@ -13,6 +13,7 @@
     <Compile Include="Mul\PassiveMul.fs" />
     <Compile Include="CRT\CRTReconstruct.fs" />
     <Compile Include="CRT\CRTShare.fs" />
+    <Compile Include="CRT\CRTOffline.fs" />
     <Compile Include="CRT\CRTOnline.fs" />
   </ItemGroup>
 

@@ -46,3 +46,16 @@ let ``King Reconstruct From example`` () =
     let res = CRTShare.reconstruct [102I; 86I; 78I] pl
     printfn "res -> %A" res
     Assert.True((res = 9I))
+
+[<Fact>]
+let ``Offline shares`` () = 
+    let p0 = 11I
+    let moduli = [13I; 17I; 19I]
+    let parties = CRTOffline.makeTestParties 3 p0 moduli
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let parties = CRTOffline.pickSi parties (p0 - 1I)
+
+    let parties = CRTOffline.computeShares parties schemeParams
+
+    CRTOffline.printAllReceivedShares parties
+

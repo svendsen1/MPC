@@ -14,3 +14,20 @@ type CrtShareParams = {
     Moduli : bigint list   // party moduli p_1 ... p_n
     L      : bigint        // randomness range
 }
+
+type MaskPair = {
+    RtShares : bigint list 
+    Rt2Shares : bigint list
+}
+
+type Party = {
+    Index : int  //1-indexed
+    Modulus : bigint
+    Input : bigint 
+    si : bigint
+    
+    //Offline phase
+    ReceivedSt : bigint list
+    ReceivedS2t : bigint list
+    MaskPool : MaskPair list 
+}
