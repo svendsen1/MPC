@@ -31,37 +31,6 @@ module CRTOffline =
                      ReceivedS2t = receivedSharesS2t}
         ) parties
 
-    let printReceivedShares (party: Party) =
-        printfn "Party %d:" party.Index
-        printfn "  ReceivedSt  : %A" party.ReceivedSt
-        printfn "  ReceivedS2t : %A" party.ReceivedS2t
-
-    let printAllReceivedShares (parties: Party list) =
-        List.iter printReceivedShares parties
-    
-    let printMaskingPairs (party: Party) =
-        printfn "Party %d:" party.Index
-        printfn "  Rt  : %A" party.Rt
-        printfn "  R2t : %A" party.R2t
-
-    let printAllRs (parties: Party list) =
-        List.iter printMaskingPairs parties
-
-    let makeTestParties (n: int) (p0: bigint) (moduli: bigint list) =
-        List.init n (fun i ->
-            {
-                Index       = i + 1
-                Modulus     = List.item i moduli
-                Input       = bigint (i + 1)
-                si          = bigint 0
-                ReceivedSt  = []
-                ReceivedS2t = []
-                MaskPool    = []
-                Rt = []
-                R2t = []
-            }
-        )
-        |> fun parties ->  pickSi  parties p0
     let makeVandermonde (n: int) (t: int) = 
         let h = n-t-1
         let list = List.init n (fun n -> n + 1)
@@ -81,7 +50,7 @@ module CRTOffline =
             |> List.fold (+) 0I            // sum
             |> fun x -> ((x % p) + p) % p // reduce mod p
         )
-    
+
     /// Compute the Rt and R2t values for each party.
     let compputeMaskingPairs (parties: list<Party>) (vande: Vmatrix) = 
         parties |> List.map (fun p -> 

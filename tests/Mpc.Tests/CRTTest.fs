@@ -6,6 +6,22 @@ open Xunit
 open MPCcore
 open Protocols
 
+let makeTestParties (n: int) (p0: bigint) (moduli: bigint list) =
+    List.init n (fun i ->
+        {
+            Index       = i + 1
+            Modulus     = List.item i moduli
+            Input       = bigint (i + 1)
+            si          = bigint 0
+            ReceivedSt  = []
+            ReceivedS2t = []
+            MaskPool    = []
+            Rt = []
+            R2t = []
+        }
+    )
+    |> fun parties ->  CRTOffline.pickSi  parties p0
+
 [<Fact>]
 let ``Share and Reconstruct`` () =
     // n=3, t=1, secret x=7, p0=11
@@ -51,7 +67,7 @@ let ``King Reconstruct From example`` () =
 let ``Offline shares`` () = 
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
-    let parties = CRTOffline.makeTestParties 3 p0 moduli
+    let parties = makeTestParties 3 p0 moduli
     let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
     let parties = CRTOffline.pickSi parties (p0 - 1I)
 
@@ -60,5 +76,5 @@ let ``Offline shares`` () =
     let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
     let parties = CRTOffline.compputeMaskingPairs parties vandemonde
 
-    CRTOffline.printAllRs parties
+    PrettyPrint.printAllRs parties
 

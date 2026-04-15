@@ -11,6 +11,7 @@
   <Compile Include="AccessStructure.fs" />
   <Compile Include="QualifiedSet.fs" />
   <Compile Include="Player.fs" />
+  <Compile Include="PrettyPrint.fs"/>
 </ItemGroup>
 
 
