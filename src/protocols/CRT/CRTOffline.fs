@@ -11,17 +11,6 @@ module CRTOffline =
         let allSharesSt =  List.map (fun p -> CRTShare.share p.si parameters) parties
         let allSharesS2t = List.map (fun p -> CRTShare.share (parameters.P0 - p.si) parameters) parties
 
-        (* PRINT_CODE
-        // Print allSharesSt
-        printfn "allSharesSt:"
-        List.iteri (fun i shares ->
-            printfn "  Party %d's shares: %A" (i + 1) shares
-        ) allSharesSt
-        printfn "allSharesS2t:"
-        List.iteri (fun i shares ->
-            printfn "  Party %d's shares: %A" (i + 1) shares
-        ) allSharesS2t
-        *)
         // Take a list from the list of list, and get the j'th value. [..., {j},...]. And but in the j'th player
         // recived value spot
         List.map (fun p ->
