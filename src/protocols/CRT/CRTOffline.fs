@@ -34,11 +34,17 @@ module CRTOffline =
 
     /// Multiply matrix by column vector, in ring Z_p
     let matVecMulMod (mat: Vmatrix) (vec: bigint list) (p: bigint) : bigint list =
-        mat |> List.map (fun row ->
-            List.map2 (*) row vec          // multiply elementwise
-            |> List.fold (+) 0I            // sum
-            |> fun x -> ((x % p) + p) % p // reduce mod p
-        )
+        match mat with
+        | [] -> []
+        | row::_ ->
+            if List.length row <> List.length vec then
+                failwith "Dimension mismatch in matVecMulMod"
+            mat
+            |> List.map (fun row ->
+                List.map2 (*) row vec
+                |> List.fold (+) 0I
+                |> fun x -> ((x % p) + p) % p
+            )
 
     /// Compute the Rt and R2t values for each party.
     let compputeMaskingPairs (parties: list<Party>) (vande: Vmatrix) = 

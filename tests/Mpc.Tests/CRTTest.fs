@@ -15,12 +15,13 @@ let makeTestParties (n: int) (p0: bigint) (moduli: bigint list) =
             si          = bigint 0
             ReceivedSt  = []
             ReceivedS2t = []
-            MaskPool    = []
             Rt = []
             R2t = []
 
             WireShares = Map.empty
             InputShares = []
+            m = 0I
+            kingM = []
         }
     )
     |> fun parties ->  CRTOffline.pickSi  parties p0
@@ -93,7 +94,15 @@ let ``Online phase`` () =
 
     let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
     let parties = CRTOffline.compputeMaskingPairs parties vandemonde
+    // ------- OFFLINE ----------
 
+    //parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
+    //parties |> List.iter (fun p -> PrettyPrint.printMaskingPairs p)
     let parties = CRTOnline.shareInput parties schemeParams
+    parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
+
+    let parties = CRTOnline.circuitEmulation ([ADD("part1", "input1", "input2"); ADD("part2", "input3", "part1")]) parties schemeParams
+    parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
+    //let parties = CRTOnline.circuitEmulation ([MUL("mulRes", "input1", "input2"); MUL("mulRes2", "mulRes", "input3")]) parties schemeParams
 
     PrettyPrint.printWireShares parties
