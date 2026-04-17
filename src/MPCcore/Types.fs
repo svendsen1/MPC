@@ -29,7 +29,6 @@ type Party = {
     //Offline phase
     ReceivedSt : bigint list
     ReceivedS2t : bigint list
-    MaskPool : MaskPair list 
 
     Rt : bigint list
     R2t : bigint list
@@ -37,6 +36,8 @@ type Party = {
     //Online phase
     InputShares : bigint list
     WireShares : Map<string, bigint>
+    m : bigint
+    kingM : bigint list
 }
 
 type Vmatrix = bigint list list
