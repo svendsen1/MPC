@@ -4,10 +4,10 @@ module CRTOnline =
     open Protocols
     open MPCcore
 
+    let bigint (x:int) = bigint(x)
     let factorial n : bigint = 
         [1I..n] |> List.fold (*) 1I 
 
-    
     let computeD (n: bigint): bigint = 
         [1I..n-1I] |> List.map factorial 
                    |> List.fold (*) 1I
@@ -24,9 +24,19 @@ module CRTOnline =
         let l2 = [p0; d]
         let xBar = CRTReconstruct.crtReconstruct l1 l2 
         if 0I <= xBar && xBar <= (p0*d) then
-            xBar
+            xBar % p0
         else
             failwith "Unable to reFormat"
+
+
+    let shareInput (parties: list<Party>) (crtParams: CrtShareParams)=
+        let d = computeD ((List.length parties) |> bigint)
+        parties |> List.fold (fun updatedParties owner -> 
+            let xBar = reFormat owner.Input crtParams.P0 d
+            let dispList = CRTShare.share xBar crtParams
+            updatedParties |> List.map (fun p -> 
+                let share = (List.item (p.Index - 1) dispList)
+                {p with WireShares = Map.add("input" + string owner.Index) share p.WireShares})
+            ) parties
+        
     
-
-

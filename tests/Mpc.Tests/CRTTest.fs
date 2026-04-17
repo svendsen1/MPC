@@ -11,13 +11,16 @@ let makeTestParties (n: int) (p0: bigint) (moduli: bigint list) =
         {
             Index       = i + 1
             Modulus     = List.item i moduli
-            Input       = bigint (i + 1)
+            Input       = 3I
             si          = bigint 0
             ReceivedSt  = []
             ReceivedS2t = []
             MaskPool    = []
             Rt = []
             R2t = []
+
+            WireShares = Map.empty
+            InputShares = []
         }
     )
     |> fun parties ->  CRTOffline.pickSi  parties p0
@@ -78,3 +81,19 @@ let ``Offline shares`` () =
 
     PrettyPrint.printAllRs parties
 
+[<Fact>] 
+let ``Online phase`` () = 
+    let p0 = 11I
+    let moduli = [13I; 17I; 19I]
+    let parties = makeTestParties 3 p0 moduli
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let parties = CRTOffline.pickSi parties (p0 - 1I)
+
+    let parties = CRTOffline.computeShares parties schemeParams
+
+    let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
+    let parties = CRTOffline.compputeMaskingPairs parties vandemonde
+
+    let parties = CRTOnline.shareInput parties schemeParams
+
+    PrettyPrint.printWireShares parties

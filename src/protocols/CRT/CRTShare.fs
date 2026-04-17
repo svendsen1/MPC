@@ -24,7 +24,8 @@ module CRTShare=
     // Returns list of n shares, one per party
     let share (x: bigint) (p: CrtShareParams) : bigint list =
         if x < 0I || x >= p.P0 then
-            failwith "Secret out of range"
+            let failM =  "Secret out of range - x:" + string(x) 
+            failwith failM
         
         // Pick random u in {0, ..., L-1}
         let u = ExtendMath.randomBigint p.L

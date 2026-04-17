@@ -33,6 +33,17 @@ type Party = {
 
     Rt : bigint list
     R2t : bigint list
+
+    //Online phase
+    InputShares : bigint list
+    WireShares : Map<string, bigint>
 }
 
 type Vmatrix = bigint list list
+
+type Wire = string
+type Gate = 
+    | Input of Wire
+    | ADD of Wire * Wire * Wire
+    | MUL of Wire * Wire * Wire
+type Circut = Gate list

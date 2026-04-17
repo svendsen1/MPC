@@ -16,3 +16,15 @@ module PrettyPrint =
 
     let printAllRs (parties: Party list) =
         List.iter printMaskingPairs parties
+    
+    let printWireShares (parties: Party list) =
+        parties |> List.iter (fun p ->
+            printfn "Player %d:" p.Index
+
+            p.WireShares
+            |> Map.iter (fun wire value ->
+                printfn "  %s -> %A" wire value
+            )
+
+            printfn "" // empty line between players
+        )
