@@ -20,17 +20,16 @@ module CRTOffline =
                      ReceivedS2t = receivedSharesS2t}
         ) parties
 
-    let makeVandermonde (n: int) (t: int) = 
-        let h = n-t-1
-        let list = List.init n (fun n -> n + 1)
-        let iter = List.init h (fun x -> x)
-        let rec inner (iter: int list) (acc: Vmatrix) = 
+    let makeVandermonde (n: int) (t: int) =
+        let cols = List.init n (fun i -> i + 1)        // [1; 2; 3]
+        let rows = List.init (n - t) (fun exp -> exp)  // [0; 1] — n-t rows
+        let rec inner (iter: int list) (acc: Vmatrix) =
             match iter with
-                | head::tail -> 
-                    let list = List.map (fun i -> ExtendMath.pwr i head) list
-                    inner tail (list::acc)
-                | [] -> acc
-        inner iter []
+            | head :: tail ->
+                let row = List.map (fun i -> ExtendMath.pwr i head) cols
+                inner tail (row :: acc)
+            | [] -> List.rev acc                       // reverse to keep correct order
+        inner rows []
 
     /// Multiply matrix by column vector, in ring Z_p
     let matVecMulMod (mat: Vmatrix) (vec: bigint list) (p: bigint) : bigint list =

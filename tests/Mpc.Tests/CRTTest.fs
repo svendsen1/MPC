@@ -106,3 +106,15 @@ let ``Online phase`` () =
     //let parties = CRTOnline.circuitEmulation ([MUL("mulRes", "input1", "input2"); MUL("mulRes2", "mulRes", "input3")]) parties schemeParams
 
     PrettyPrint.printWireShares parties
+
+[<Fact>] 
+let ``Matrix Mul`` () = 
+    let a = [[1I;1I;1I];[2I;2I;2I]]
+    let b = [1I;1I;1I;1I]
+
+    let a1 = CRTOffline.makeVandermonde 4 1
+    printfn "v: %A" a1
+
+    let p = CRTOffline.matVecMulMod a1 b 11I
+    printf "p:"
+    List.iter (fun i -> printf " %A" i) p
