@@ -38,6 +38,7 @@ type Party = {
     WireShares : Map<string, bigint>
     m : bigint
     kingM : bigint list
+    broadcastRecived: bigint list
 }
 
 type Vmatrix = bigint list list

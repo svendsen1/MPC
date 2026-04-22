@@ -11,17 +11,18 @@ let makeTestParties (n: int) (p0: bigint) (moduli: bigint list) =
         {
             Index       = i + 1
             Modulus     = List.item i moduli
-            Input       = 70I + bigint i
+            Input       = 1I + bigint i
             si          = bigint 0
             ReceivedSt  = []
             ReceivedS2t = []
             Rt = []
             R2t = []
 
-            WireShares = Map.empty
+            WireShares = Map.ofList["inv3", 34I % p0]
             InputShares = []
             m = 0I
             kingM = []
+            broadcastRecived = []
         }
     )
     |> fun parties ->  CRTOffline.pickSi  parties p0
@@ -86,11 +87,11 @@ let ``Offline shares`` () =
     PrettyPrint.printAllRs parties
     printfn ""
 
-[<Fact>] 
+[<Fact>]
 let ``Online phase`` () = 
     printfn "Online phase:"
-    let p0 = 11I
-    let moduli = [13I; 17I; 19I]
+    let p0 = 101I
+    let moduli = [103I; 107I; 109I]
     let parties = makeTestParties 3 p0 moduli
     let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
     let parties = CRTOffline.pickSi parties (p0 - 1I)
@@ -101,17 +102,29 @@ let ``Online phase`` () =
     let parties = CRTOffline.compputeMaskingPairs parties vandemonde
     // ------- OFFLINE ----------
 
-    //parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
-    //parties |> List.iter (fun p -> PrettyPrint.printMaskingPairs p)
     let parties = CRTOnline.shareInputWithPrints parties schemeParams
-    parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
+    //parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
 
-    let parties = CRTOnline.circuitEmulation ([ADD("part1", "input1", "input2"); ADD("part2", "input3", "part1")]) parties schemeParams
-    parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
-    //let parties = CRTOnline.circuitEmulation ([MUL("mulRes", "input1", "input2"); MUL("mulRes2", "mulRes", "input3")]) parties schemeParams
+    //let parties = CRTOnline.circuitEmulation ([ADD("w1", "input1", "input2"); ADD("w2", "input3", "w1"); MUL("out", "w2","inv3")]) parties schemeParams
+    //let parties = CRTOnline.circuitEmulation ([ADD("w1", "input1", "input2"); ADD("out", "input3", "w1")]) parties schemeParams
+    let parties = CRTOnline.circuitEmulation ([MUL("mulRes", "input1", "input2"); MUL("out", "mulRes", "input3")]) parties schemeParams
+    //parties |> List.iteri (fun i p -> printfn "player %d has %d pairs" i p.R2t.Length)
+    
+    parties |> List.iteri (fun i party ->
+    Assert.True(party.Rt.Length = 0, 
+                $"Party {i + 1} has wrong Rt size")
+                )
+    parties |> List.iteri (fun i party ->
+    Assert.True(party.R2t.Length = 0, 
+                $"Party {i + 1} has wrong R2t size")
+                )
+
     printfn "Shares of each player to perfrom circuit evaluation on:"
     PrettyPrint.printWireShares parties
     printfn " \n "
+    let result = CRTOnline.outputReconstruction parties "out" schemeParams
+    printfn "Result: %A" result
+    Assert.True((result = 6I))
 
 [<Fact>] 
 let ``Matrix Mul`` () = 

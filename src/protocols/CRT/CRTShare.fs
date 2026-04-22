@@ -23,7 +23,7 @@ module CRTShare=
     // Share a secret x in Z_p0
     // Returns list of n shares, one per party
     let share (x: bigint) (p: CrtShareParams) : bigint list =
-        if x < 0I || x >= p.P0 then
+        if x < 0I then
             let failM =  "Secret out of range - x:" + string(x) 
             failwith failM
         
@@ -35,7 +35,6 @@ module CRTShare=
         
         // Each party i gets X mod p_i
         List.map (fun pi -> X % pi) p.Moduli
-
     // Reconstruct secret from shares
     // Returns x in Z_p0
     let reconstruct (shares: bigint list) (p: CrtShareParams) : bigint =
