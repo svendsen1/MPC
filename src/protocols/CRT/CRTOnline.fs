@@ -36,6 +36,21 @@ module CRTOnline =
                 let share = (List.item (p.Index - 1) dispList)
                 {p with WireShares = Map.add("input" + string owner.Index) share p.WireShares})
             ) parties
+    
+    let shareInputWithPrints (parties: list<Party>) (crtParams: CrtShareParams) =
+        let d = computeD ((List.length parties) |> bigint)
+        parties |> List.fold (fun updatedParties owner -> 
+            let xBar = reFormat owner.Input crtParams.P0 d
+            printfn "Party: %d" owner.Index
+            printfn "Input: %A" owner.Input
+            printfn "Reformatted input: %A" xBar
+            let dispList = CRTShare.share xBar crtParams
+            printfn "Shares of reformatted input: %A" dispList
+            updatedParties |> List.map (fun p -> 
+                let share = (List.item (p.Index - 1) dispList)
+                {p with WireShares = Map.add("input" + string owner.Index) share p.WireShares})
+            ) parties
+            
     let rec checkRandomness (parties: Party list) = 
         match parties with
         | [] -> true
