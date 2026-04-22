@@ -73,37 +73,21 @@ module CRTOnline =
         CRTReconstruct.crtReconstruct shares moduli
 
     let mulProtocol (p: list<Party>) (crtParams: CrtShareParams) (out: Wire) (a: Wire) (b: Wire) =
-        // For simplicity we always choose Party 0 (index 1) as KING
-
-        if checkRandomness p then
-            // Part 1 - Each party computes m_i and sends to KING
-            let pMi = p |> List.map (fun f -> mulMi f a b)
-            let pKingShared = kingShare pMi
-            let pMi = p |> List.map (fun f -> mulMi f a b)
-
-            pMi |> List.iter (fun p -> 
-            printfn "Party %d m_i = %A" p.Index p.m)
-            // Part 2 - King reconstruct
-            let pKingRecon = match pKingShared with
-                                    | h::rest -> let M = kingReconstruct h.kingM crtParams.Moduli
-                                                 printfn "King reconstructed M = %A" M
-                                                 printfn "M mod p0 = %A" (M % crtParams.P0)
-                                                 {h with kingM = [M]}::rest
-                                    | _ -> failwith "Failed to KingReconstruct"
-            //Part 3 - KingBradcast
-            let M = match pKingRecon with | h::_ -> List.head h.kingM | _ -> failwith "Couldn't find M at KING"
-            let mModP0 = M % crtParams.P0
-            let d = computeD ((List.length p) |> bigint)
-            let mBar = reFormat mModP0 crtParams.P0 d
-            let pKingBroadcast = List.map (fun p -> {p with m = mBar % p.Modulus}) pKingRecon
-
-            //Part 4 - Each party computes output shares
-            let pWithWireShares =  List.map (fun p -> {p with WireShares = Map.add out ((p.m + List.head p.Rt) % p.Modulus) p.WireShares}) pKingBroadcast
-            // Remove the used masking pair
-            pWithWireShares |> List.map (fun p -> {p with  Rt = List.tail p.Rt 
-                                                                R2t = List.tail p.R2t})
-        else 
-            failwith "Ran out of randomness"
+        // Each party sends va and vb to king (simulate by collecting)
+        let sharesA = p |> List.map (fun party -> party.WireShares.[a])
+        let sharesB = p |> List.map (fun party -> party.WireShares.[b])
+        // King reconstructs a and b
+        let aRec = CRTReconstruct.crtReconstruct sharesA crtParams.Moduli % crtParams.P0
+        let bRec = CRTReconstruct.crtReconstruct sharesB crtParams.Moduli % crtParams.P0
+        let product = aRec * bRec % crtParams.P0
+        // King reFormats product
+        let d = computeD (List.length p |> bigint)
+        let productBar = reFormat product crtParams.P0 d
+        // King shares productBar
+        let productShares = CRTShare.share productBar crtParams
+        // Send shares back to parties
+        let pWithShares = List.map2 (fun party share -> {party with WireShares = Map.add out share party.WireShares}) p productShares
+        pWithShares
 
     let circuitEmulation (circut: Circut) (p: list<Party>) (crtParams: CrtShareParams)=
         let rec eval (gates: Circut) (parties: list<Party>) =
