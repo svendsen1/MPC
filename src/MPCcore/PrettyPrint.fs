@@ -1,6 +1,19 @@
 namespace MPCcore
 
 module PrettyPrint = 
+    let printInput (party: Party) =
+        printfn "Party %d: " party.Index
+        printfn "Input: %A" party.Input
+
+    let printAllInput (parties: Party list) =
+        List.iter printInput parties
+    let printSi (party: Party) =
+        printfn "Party %d:" party.Index
+        printfn "Si: %A" party.si
+
+    let printAllSi (parties: Party list) =
+        List.iter printSi parties
+
     let printReceivedShares (party: Party) =
         printfn "Party %d:" party.Index
         printfn "  ReceivedSt  : %A" party.ReceivedSt
