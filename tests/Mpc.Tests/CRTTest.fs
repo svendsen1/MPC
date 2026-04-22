@@ -75,6 +75,7 @@ let ``Offline shares`` () =
     let parties = makeTestParties 3 p0 moduli
     let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
     let parties = CRTOffline.pickSi parties (p0 - 1I)
+    let parties = CRTOffline.computeShares parties schemeParams
     let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
     let parties = CRTOffline.compputeMaskingPairs parties vandemonde
     printfn "Each party randomly samples Si:"
@@ -114,7 +115,6 @@ let ``Online phase`` () =
 
 [<Fact>] 
 let ``Matrix Mul`` () = 
-    let a = [[1I;1I;1I];[2I;2I;2I]]
     let b = [1I;1I;1I;1I]
 
     let a1 = CRTOffline.makeVandermonde 4 1
