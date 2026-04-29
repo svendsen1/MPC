@@ -7,6 +7,9 @@ module CRTShare=
     let verifyParams (p: CrtShareParams) : bool =
         let pAll = ExtendMath.product p.Moduli
         let correctnessHolds = (p.L + 1I) * p.P0 < pAll
+        if correctnessHolds = false then
+            let correctnessError = sprintf "Invalid L: %A" p.L 
+            failwith correctnessError
         
         // Check pairwise coprimality
         let allCoprime =
@@ -17,7 +20,9 @@ module CRTShare=
             ) [ for i in 0..allMods.Length-1 do
                     for j in i+1..allMods.Length-1 do
                         yield (allMods.[i], allMods.[j]) ]
-        
+        if allCoprime = false then
+            let allCoprimeError = sprintf "p's are not coprime: %A" p.Moduli
+            failwith allCoprimeError
         correctnessHolds && allCoprime
 
     // Share a secret x in Z_p0
