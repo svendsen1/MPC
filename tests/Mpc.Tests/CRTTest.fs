@@ -83,6 +83,7 @@ let ``Offline shares`` () =
     PrettyPrint.printAllSi parties
 
     let parties = CRTOffline.computeSharesWithPrints parties schemeParams
+    
     printfn "Each party generates masking pairs Rt and R2t:"
     PrettyPrint.printAllRs parties
     printfn ""

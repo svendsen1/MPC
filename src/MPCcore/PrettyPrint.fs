@@ -7,9 +7,16 @@ module PrettyPrint =
 
     let printAllInput (parties: Party list) =
         List.iter printInput parties
+
+    let printCrtShareParams (parameters: CrtShareParams) =
+        printfn "Parameters of the protocol:"
+        printfn "  P0     = %A" parameters.P0
+        printfn "  Moduli = %A" parameters.Moduli
+        printfn "  L      = %A" parameters.L
+
     let printSi (party: Party) =
-        printfn "Party %d:" party.Index
-        printfn "Si: %A" party.si
+        printf "Party %d" party.Index
+        printfn " Si: %A" party.si
 
     let printAllSi (parties: Party list) =
         List.iter printSi parties

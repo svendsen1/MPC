@@ -65,3 +65,11 @@ module CRTOffline =
         parties |> List.map (fun p -> 
             {p with Rt = matVecMulMod vande p.ReceivedSt p.Modulus
                     R2t = matVecMulMod vande p.ReceivedS2t p.Modulus})
+
+    let runOfflinePhase (parties: Party list) (parameters: CrtShareParams) =
+        let max = parameters.P0 - 1I 
+        let parties = pickSi parties max
+        let parties = computeShares parties parameters
+        let vandemonde = makeVandermonde parameters.Moduli.Length 1
+        let parties = compputeMaskingPairs parties vandemonde
+        parties
