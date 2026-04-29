@@ -119,12 +119,12 @@ module CRTOnline =
 
     let reconstructOutput (party: Party) (parms: CrtShareParams) : bigint =
         let shares = party.broadcastRecived
-        printfn "Reconstructing from shares: %A" shares
-        printfn "Using moduli: %A" parms.Moduli
+        //printfn "Reconstructing from shares: %A" shares
+        //printfn "Using moduli: %A" parms.Moduli
         
         let X = CRTReconstruct.crtReconstruct shares parms.Moduli
-        printfn "Reconstructed X = %A" X
-        printfn "X mod p0 = %A" (X % parms.P0)
+        //printfn "Reconstructed X = %A" X
+        //printfn "X mod p0 = %A" (X % parms.P0)
         
         X % parms.P0
 
@@ -144,5 +144,32 @@ module CRTOnline =
 
         if not allAgree then
             failwith "Parties reconstructed different output values — protocol error"
+
+        result
+    
+    let runOnlinePhase (parties: Party list) (crtParams: CrtShareParams) (circuit: Gate list) : bigint =
+    
+        // Step 1 - Input sharing
+        let partiesWithInputs = shareInput parties crtParams
+        
+        // Step 2 - Add public constants to wire map (e.g. inv3)
+        let partiesWithConstants =
+            partiesWithInputs |> List.map (fun p ->
+                { p with WireShares = 
+                            p.WireShares 
+                            |> Map.add "inv3" (ExtendMath.modInverse 3I crtParams.P0 % p.Modulus) })
+
+        // Step 3 - Evaluate circuit
+        let partiesAfterCircuit = circuitEmulation circuit partiesWithConstants crtParams
+
+        // Step 4 - Output reconstruction
+        let result = outputReconstruction partiesAfterCircuit "out" crtParams
+
+        // Print results
+        printfn "=== Online Phase Results ==="
+        partiesAfterCircuit |> List.iter (fun p ->
+            printfn "Party %d output share: %A" p.Index p.WireShares.["out"])
+        printfn "Reconstructed output: %A" result
+        printfn "==========================="
 
         result

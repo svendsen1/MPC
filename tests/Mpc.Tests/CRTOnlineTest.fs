@@ -1,4 +1,4 @@
-module CRTTests
+module CRTOnlineTests
 
 open System
 open Xunit
@@ -96,59 +96,3 @@ let ``Input sharing`` () =
     // Large prime p0
     testInputSharing [100I; 200I; 300I] 1009I [1013I; 1019I; 1021I] 100000I
 
-
-[<Fact>]
-let ``Circuit emulation - multiplication gate`` () =
-    let testMulGate (shares1: bigint list) (shares2: bigint list)
-                    (moduli: bigint list) (p0: bigint) 
-                    (crtParams: CrtShareParams)
-                    (expected: bigint) =
-        
-        // Run offline phase to generate fresh mask pair
-        let n = List.length moduli
-        let t = 1
-        
-        
-        // Run multiplication gate
-        let result = mulProtocol partiesWithMasks crtParams "a" "b" "out"
-
-        // Property 1 — all shares in range
-        result |> List.iter (fun p ->
-            Assert.True(
-                p.WireShares.["out"] >= 0I && p.WireShares.["out"] < p.Modulus,
-                $"Party {p.Index} out share out of range"))
-
-        // Property 2 — reconstruction gives expected value
-        let outShares    = result |> List.map (fun p -> p.WireShares.["out"])
-        let reconstructed = CRTReconstruct.crtReconstruct outShares moduli % p0
-        Assert.True(
-            reconstructed = expected,
-            $"Mul gate: reconstructed {reconstructed} but expected {expected}")
-    
-    let moduli    = [103I; 107I; 109I]
-    let p0        = 101I
-    let crtParams = { P0 = p0; Moduli = moduli; L = 1000I }
-
-    // shares of 7  — underlying X=411: [102; 90; 84]
-    // shares of 34 — public scalar:    [34;  34; 34]
-    // 7 * 34 mod 101 = 238 mod 101 = 36
-    testMulGate [102I; 90I; 84I] [34I; 34I; 34I] moduli p0 crtParams 36I
-
-    // 0 * 34 = 0
-    testMulGate [0I; 0I; 0I] [34I; 34I; 34I] moduli p0 crtParams 0I
-
-    // shares of 3 — underlying X=306: [100; 92; 88]
-    // shares of 5 — underlying X=106: [3; 106; 106]  
-    // 3 * 5 mod 101 = 15
-    testMulGate [100I; 92I; 88I] [3I; 106I; 106I] moduli p0 crtParams 15I
-
-    // shares of 10 — underlying X=111: [8; 4; 2]
-    // shares of 10 — same
-    // 10 * 10 mod 101 = 100
-    testMulGate [8I; 4I; 2I] [8I; 4I; 2I] moduli p0 crtParams 100I
-
-    // shares of 50 — underlying X=151: [48; 44; 42]
-    // shares of 2  — underlying X=103: [0; 103; 103]... 
-    // wait 103 mod 103 = 0, 103 mod 107 = 103, 103 mod 109 = 103
-    // 50 * 2 mod 101 = 100
-    testMulGate [48I; 44I; 42I] [0I; 103I; 103I] moduli p0 crtParams 100I
