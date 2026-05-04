@@ -143,8 +143,6 @@ let ``Add gate`` () =
     // x + 0 = x
     testAddGate [13I; 13I; 13I] [0I; 0I; 0I] moduli p0 13I
 
-
-
 [<Fact>]
 let ``Circuit emulation - multiplication gate`` () =
     let testMulGate (shares1: bigint list) (shares2: bigint list)

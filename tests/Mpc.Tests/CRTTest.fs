@@ -129,7 +129,6 @@ let ``Online phase 2`` () =
     // ------- OFFLINE ----------
     let partiesAfterOffline = CRTOffline.runOfflinePhase parties schemeParams
     // ------- ONLINE ----------
-    printfn " \n "
     let result = CRTOnline.runOnlinePhase partiesAfterOffline schemeParams ([ADD("w1", "input1", "input2"); ADD("w2", "input3", "w1"); MUL("out", "w2","inv3")])
     Assert.True((result = 2I))
 
