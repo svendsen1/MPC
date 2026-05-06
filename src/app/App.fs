@@ -4,27 +4,6 @@ module App =
     open MPCcore
     open Protocols
 
-    let prettyPrintPlayerList (playersList: list<Player>) =       
-            playersList |> List.iter (fun x -> 
-            printf "Player_%d shares:" (x.PlayerId + 1);
-            Map.iter (fun k v -> printf "(%A,%d) " k v) x.Knows;
-            printf " Products: %A Sum of products:%d" x.V_m (List.sum x.V_m)
-            printfn ""
-        )
-    let prettyPrintUs (Us) = 
-        Us 
-        |> List.iteri (fun playerIdx pairs ->
-            printf "Player_%d multiplication pairs: " (playerIdx + 1)
-            if List.isEmpty pairs then
-                printf "none"
-            else
-                pairs 
-                |> List.map (fun (i, j) -> sprintf "(s%d,t%d)" i j)
-                |> String.concat ", "
-                |> printf "%s"
-            printfn ""
-        )
-        printfn""
 
 
     [<EntryPoint>]
@@ -56,13 +35,13 @@ module App =
 
         let Us = SecretShare.makeU playersInt playersList
 
-        prettyPrintUs Us
+        PrettyPrint.prettyPrintUs Us
 
         let playersList = PassiveMul.passiveMul playersList Us
 
         let playersList = SecretShare.shareVm playersList
 
-        prettyPrintPlayerList playersList
+        PrettyPrint.prettyPrintPlayerList playersList
 
         
         0

@@ -62,8 +62,9 @@ module CRTOnline =
     let mulMi (p: Party) (a: Wire) (b: Wire) = 
         let va = p.WireShares[a]
         let vb = p.WireShares[b]
-        let mi = (((va*vb) % p.Modulus) + (p.R2t |> List.head)) % p.Modulus
-        {p with m = mi}
+        let masking = List.head p.R2t
+        let mi = (((va*vb) % p.Modulus) + masking) % p.Modulus
+        {p with m = mi; R2t = List.tail p.R2t}
     let kingShare (p: Party list) = 
         let M = List.fold (fun acc f -> [f.m]@acc) [] p
         match p with

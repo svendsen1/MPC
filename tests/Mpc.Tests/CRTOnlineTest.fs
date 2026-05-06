@@ -30,7 +30,7 @@ let ``ReFormat`` () =
 let ``Input sharing`` () =
     // Helper to verify input sharing properties
     let testInputSharing (inputs: bigint list) (p0: bigint) (moduli: bigint list) (l: bigint) =
-        let crtParams = { P0 = p0; Moduli = moduli; L = l }
+        let crtParams = { P0 = p0; Moduli = moduli; L = l; t = 1 }
         let d = CRTOnline.computeD (List.length inputs |> bigint)
         
         let parties = inputs |> List.mapi (fun i input ->
