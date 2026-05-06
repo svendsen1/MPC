@@ -96,3 +96,102 @@ let ``Input sharing`` () =
     // Large prime p0
     testInputSharing [100I; 200I; 300I] 1009I [1013I; 1019I; 1021I] 100000I
 
+[<Fact>]
+let ``Add gate`` () =
+    let testAddGate (shares1: bigint list) (shares2: bigint list) 
+                    (moduli: bigint list) (p0: bigint) (expected: bigint) =
+        let crtParams = { P0 = p0; Moduli = moduli; L = 10I }
+        let parties = moduli |> List.mapi (fun i input ->
+                {   Index = i + 1
+                    Modulus = moduli.[i]
+                    Input = input
+                    si          = bigint 0
+                    ReceivedSt  = []
+                    ReceivedS2t = []
+                    Rt = []
+                    R2t = []
+
+                    WireShares = Map.ofList [("a", shares1.[i]); ("b", shares2.[i])]
+                    InputShares = []
+                    m = 0I
+                    kingM = []
+                    broadcastRecived = []
+                })
+        
+        let result = CRTOnline.circuitEmulation [ADD("out","a","b")] parties crtParams
+        
+        // Property 1 — all shares in range
+        result |> List.iter (fun p ->
+            Assert.True(p.WireShares.["out"] >= 0I && 
+                        p.WireShares.["out"] < p.Modulus,
+                        $"Party {p.Index} out share out of range"))
+        
+        // Property 2 — reconstruction gives expected value
+        let outShares = result |> List.map (fun p -> p.WireShares.["out"])
+        let reconstructed = CRTReconstruct.crtReconstruct outShares moduli % p0
+        Assert.True((reconstructed = expected), $"Add gate: reconstructed {reconstructed} but expected {expected}")
+
+    let moduli = [103I; 107I; 109I]
+    let p0     = 101I
+
+    // 0 + 0 = 0
+    testAddGate [0I; 0I; 0I] [0I; 0I; 0I] moduli p0 0I
+    // 50 + 50 = 100
+    testAddGate [50I; 50I; 50I] [50I; 50I; 50I] moduli p0 100I
+    // 60 + 60 = 120 mod 101 = 19
+    testAddGate [60I; 60I; 60I] [60I; 60I; 60I] moduli p0 19I
+    // x + 0 = x
+    testAddGate [13I; 13I; 13I] [0I; 0I; 0I] moduli p0 13I
+
+[<Fact>]
+let ``Circuit emulation - multiplication gate`` () =
+    let testMulGate (shares1: bigint list) (shares2: bigint list)
+                    (moduli: bigint list) (p0: bigint) 
+                    (crtParams: CrtShareParams)
+                    (expected: bigint) =
+        let parties = moduli |> List.mapi (fun i input ->
+            {   Index = i + 1
+                Modulus = moduli.[i]
+                Input = input
+                si = bigint 0
+                ReceivedSt  = []
+                ReceivedS2t = []
+                Rt = []
+                R2t = []
+
+                WireShares = Map.ofList [("a", shares1.[i]); ("b", shares2.[i])]
+                InputShares = []
+                m = 0I
+                kingM = []
+                broadcastRecived = []
+            })
+
+        let partiesAfterOffline = CRTOffline.runOfflinePhase parties crtParams
+
+        let result = CRTOnline.circuitEmulation [MUL("out","a","b")] partiesAfterOffline crtParams
+
+        // Property 1 — all shares in range
+        result |> List.iter (fun p ->
+            Assert.True(p.WireShares.["out"] >= 0I && 
+                        p.WireShares.["out"] < p.Modulus,
+                        $"Party {p.Index} out share out of range"))
+
+        // Property 2 — reconstruction gives expected value
+        let outShares = result |> List.map (fun p -> p.WireShares.["out"])
+        let reconstructed = CRTReconstruct.crtReconstruct outShares moduli % p0
+        Assert.True((reconstructed = expected),
+                    $"Mul gate: reconstructed {reconstructed} but expected {expected}")
+    let moduli  = [103I; 107I; 109I]
+    let p0      = 101I
+    let d       = CRTOnline.computeD 3I
+    let crtParams = { P0 = p0; Moduli = moduli; L = 1000I }
+
+
+    // 7 * 34 mod 101 = 238 mod 101 = 36  (34 = 3^-1 mod 101, so 7/3 = 36 mod 101... 
+    // wait: 7 * 34 = 238, 238 mod 101 = 36)
+    // shares of 7: underlying X_w = 411, shares = [102; 90; 84]
+    // shares of 34: [34; 34; 34]
+    testMulGate [102I; 90I; 84I] [34I; 34I; 34I] moduli p0 crtParams 36I
+
+    // 0 * anything = 0
+    testMulGate [0I; 0I; 0I] [34I; 34I; 34I] moduli p0 crtParams 0I

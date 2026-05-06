@@ -127,14 +127,8 @@ let ``Online phase 2`` () =
     let parties = makeTestParties 3 p0 moduli
     let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
     // ------- OFFLINE ----------
-    let parties = CRTOffline.pickSi parties (p0 - 1I)
-
-    let parties = CRTOffline.computeShares parties schemeParams
-
-    let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
-    let partiesAfterOffline = CRTOffline.compputeMaskingPairs parties vandemonde
+    let partiesAfterOffline = CRTOffline.runOfflinePhase parties schemeParams
     // ------- ONLINE ----------
-    printfn " \n "
     let result = CRTOnline.runOnlinePhase partiesAfterOffline schemeParams ([ADD("w1", "input1", "input2"); ADD("w2", "input3", "w1"); MUL("out", "w2","inv3")])
     Assert.True((result = 2I))
 
