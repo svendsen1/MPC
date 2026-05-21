@@ -42,16 +42,16 @@ let private assertMaskingPairsValid (party: Party) (t: int) =
 
 let offlineConfigs =
     [
-        { P0 = 11I; Moduli = [13I; 17I; 19I]; L = 30I }
-        { P0 = 101I; Moduli = [103I; 107I; 109I; 113I; 127I; 131I; 137I; 139I; 149I]; L = 50000I }
-        { P0 = 7I; Moduli = [11I; 13I; 17I; 19I]; L = 10I }
+        { P0 = 11I; Moduli = [13I; 17I; 19I]; L = 30I; t = 1 }
+        { P0 = 101I; Moduli = [103I; 107I; 109I; 113I; 127I; 131I; 137I; 139I; 149I]; L = 50000I; t = 2 }
+        { P0 = 7I; Moduli = [11I; 13I; 17I; 19I]; L = 10I; t = 1}
     ]
 
 [<Fact>]
 let ``Offline Phase parameter validation`` () =
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
 
     Assert.True(CRTShare.verifyParams schemeParams, sprintf "Expected schemeParams to be valid: %A" schemeParams)
 
@@ -60,7 +60,7 @@ let ``Offline Phase Si sharing and reconstruction`` () =
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
 
     let parties = CRTOffline.pickSi parties (p0 - 1I)
     parties |> List.iter (fun party ->
@@ -86,7 +86,7 @@ let ``Offline Phase masking pairs are computed correctly`` () =
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
 
     let parties = CRTOffline.pickSi parties (p0 - 1I)
     let parties = CRTOffline.computeShares parties schemeParams
@@ -119,7 +119,7 @@ let ``Offline Phase `` () =
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
 
     PrettyPrint.printCrtShareParams schemeParams
 
@@ -151,7 +151,7 @@ let ``Offline phase all in one`` () =
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1}
 
     let partiesAfterOffline = CRTOffline.runOfflinePhase parties schemeParams
     //PrettyPrint.printAllRs partiesAfterOffline

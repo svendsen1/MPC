@@ -63,13 +63,27 @@ module CRTOffline =
     /// Compute the Rt and R2t values for each party.
     let compputeMaskingPairs (parties: list<Party>) (vande: Vmatrix) = 
         parties |> List.map (fun p -> 
-            {p with Rt = matVecMulMod vande p.ReceivedSt p.Modulus
-                    R2t = matVecMulMod vande p.ReceivedS2t p.Modulus})
+            {p with Rt = p.Rt @ matVecMulMod vande p.ReceivedSt p.Modulus
+                    R2t = p.R2t @ matVecMulMod vande p.ReceivedS2t p.Modulus})
 
     let runOfflinePhase (parties: Party list) (parameters: CrtShareParams) =
         let max = parameters.P0 - 1I 
         let parties = pickSi parties max
         let parties = computeShares parties parameters
-        let vandemonde = makeVandermonde parameters.Moduli.Length 1
+        let vandemonde = makeVandermonde parameters.Moduli.Length parameters.t
         let parties = compputeMaskingPairs parties vandemonde
         parties
+
+    let runOfflinePhases (parties: Party list) (parameters: CrtShareParams) (circuit: Circut) =
+        let n = parameters.Moduli.Length
+        let circuitSize = circuit.Length
+        let denominator = n - parameters.t
+        let rounds = (circuitSize + denominator - 1) / denominator  // ceil(circuitSize / denominator)
+        
+        let rec runRounds parties remaining =
+            if remaining = 0 then parties
+            else
+                let parties = runOfflinePhase parties parameters
+                runRounds parties (remaining - 1)
+        
+        runRounds parties rounds

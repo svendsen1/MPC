@@ -13,6 +13,7 @@ type CrtShareParams = {
     P0     : bigint        // secret field modulus
     Moduli : bigint list   // party moduli p_1 ... p_n
     L      : bigint        // randomness range
+    t      : int        // Corruption threshold, less than n/2
 }
 
 type MaskPair = {
