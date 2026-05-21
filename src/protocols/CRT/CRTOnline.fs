@@ -36,7 +36,17 @@ module CRTOnline =
                 let share = (List.item (p.Index - 1) dispList)
                 {p with WireShares = Map.add("input" + string owner.Index) share p.WireShares})
             ) parties
-    
+    let shareValue value parties crtParams out =
+        let d = computeD (bigint (List.length parties))
+
+        let xBar = reFormat value crtParams.P0 d
+        let dispList = CRTShare.share xBar crtParams
+
+        List.zip parties dispList
+        |> List.map (fun (p, share) ->
+            { p with WireShares = Map.add out share p.WireShares }
+        )
+
     let shareInputWithPrints (parties: list<Party>) (crtParams: CrtShareParams) =
         let d = computeD ((List.length parties) |> bigint)
         parties |> List.fold (fun updatedParties owner -> 
@@ -88,6 +98,16 @@ module CRTOnline =
         // Send shares back to parties
         let pWithShares = List.map2 (fun party share -> {party with WireShares = Map.add out share party.WireShares}) p productShares
         pWithShares
+    
+    let invProtocol parties crtParams a out =
+        // reconstruct
+        let shares = parties |> List.map (fun p -> Map.find a p.WireShares)
+        let y = CRTReconstruct.crtReconstruct shares crtParams.Moduli
+        if y = 0I then failwith "Cannot invert 0"
+        // invert
+        let yInv = ExtendMath.modInverse y crtParams.P0
+        // reshare
+        shareValue yInv parties crtParams out
 
     let circuitEmulation (circut: Circut) (p: list<Party>) (crtParams: CrtShareParams)=
         let rec eval (gates: Circut) (parties: list<Party>) =
@@ -104,6 +124,7 @@ module CRTOnline =
                                         {n with WireShares = Map.add out result n.WireShares}
                                     )
                                 | MUL (out, a, b) -> mulProtocol parties crtParams out a b
+                                | INV (out: Wire, a: Wire) -> invProtocol parties crtParams a out
                             eval rest updatedParties
         eval circut p
 
@@ -157,7 +178,7 @@ module CRTOnline =
             partiesWithInputs |> List.map (fun p ->
                 { p with WireShares = 
                             p.WireShares 
-                            |> Map.add "inv3" (ExtendMath.modInverse 3I crtParams.P0 % p.Modulus) })
+                            |> Map.add "avg" (ExtendMath.modInverse (bigint (List.length parties)) crtParams.P0 % p.Modulus) })
 
         // Step 3 - Evaluate circuit
         let partiesAfterCircuit = circuitEmulation circuit partiesWithConstants crtParams

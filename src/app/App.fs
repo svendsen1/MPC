@@ -1,68 +1,96 @@
-namespace App
+module App
 
-module App =
-    open MPCcore
-    open Protocols
+open Open.Numeric.Primes
+open MPCcore
+open Protocols
 
-    let prettyPrintPlayerList (playersList: list<Player>) =       
-            playersList |> List.iter (fun x -> 
-            printf "Player_%d shares:" (x.PlayerId + 1);
-            Map.iter (fun k v -> printf "(%A,%d) " k v) x.Knows;
-            printf " Products: %A Sum of products:%d" x.V_m (List.sum x.V_m)
-            printfn ""
-        )
-    let prettyPrintUs (Us) = 
-        Us 
-        |> List.iteri (fun playerIdx pairs ->
-            printf "Player_%d multiplication pairs: " (playerIdx + 1)
-            if List.isEmpty pairs then
-                printf "none"
-            else
-                pairs 
-                |> List.map (fun (i, j) -> sprintf "(s%d,t%d)" i j)
-                |> String.concat ", "
-                |> printf "%s"
-            printfn ""
-        )
-        printfn""
-
-
-    [<EntryPoint>]
-    let main argv =
-        let players = argv[0]
-        //let advers = argv[1]
-        printfn "Created players: %A" players
-        //printfn "Adversaries: %A" advers
-        let playersInt = players |> int
-
-        // Make a list of players
-        let playersList = List.init playersInt (fun k -> (PlayerModule.makePlayer k []))
-
-        //Split the numbers into shares
-        let sList = KofKshare.KShare 10 playersInt
-        //sList |> List.iter (fun (x) -> printf " %d " x)
-        printfn "Input 1: 10" 
-
-        let tList = KofKshare.KShare 20 playersInt
-        //tList |> List.iter (fun (x) -> printf " %d " x)
-        printfn "Input 2: 20"
+let prettyPrintPlayerList (playersList: list<Player>) =       
+        playersList |> List.iter (fun x -> 
+        printf "Player_%d shares:" (x.PlayerId + 1);
+        Map.iter (fun k v -> printf "(%A,%d) " k v) x.Knows;
+        printf " Products: %A Sum of products:%d" x.V_m (List.sum x.V_m)
         printfn ""
-        let adversaryStructure= SecrecyStructure.singletonSecretStructure playersList
+    )
+let prettyPrintUs (Us) = 
+    Us 
+    |> List.iteri (fun playerIdx pairs ->
+        printf "Player_%d multiplication pairs: " (playerIdx + 1)
+        if List.isEmpty pairs then
+            printf "none"
+        else
+            pairs 
+            |> List.map (fun (i, j) -> sprintf "(s%d,t%d)" i j)
+            |> String.concat ", "
+            |> printf "%s"
+        printfn ""
+    )
+    printfn""
 
-        let distributionList = SecretShare.tSetShare playersList adversaryStructure 
+let getPrimes n =
+    Prime.Numbers 
+    |> Seq.skip 100000
+    |> Seq.take n
+    |> Seq.toList
 
 
-        let playersList = SecretShare.distributeShares distributionList sList tList playersList
+let makeParties (n: int) (p0: bigint) (moduli: bigint list) =
+    List.init n (fun i ->
+        {
+            Index       = i + 1
+            Modulus     = List.item i moduli
+            Input       = 1I + bigint i
+            si          = bigint 0
+            ReceivedSt  = []
+            ReceivedS2t = []
+            Rt = []
+            R2t = []
 
-        let Us = SecretShare.makeU playersInt playersList
+            WireShares = Map.empty
+            InputShares = []
+            m = 0I
+            kingM = []
+            broadcastRecived = []
+        }
+    )
+    |> fun parties ->  CRTOffline.pickSi  parties p0
 
-        prettyPrintUs Us
+let createSumCircuit n =
+    if n < 2 then
+        failwith "Need at least two inputs to create an ADD gate."
+    
+    // We start by adding input1 and input2
+    let firstGate = ADD("w1", "input1", "input2")
+    
+    // Helper to chain the rest: (current index, previous output wire, accumulated gates)
+    let rec build (i, prevWire, acc) =
+        if i > n then 
+            List.rev acc
+        else
+            let currentOut = sprintf "w%d" (i - 1)
+            let currentIn = sprintf "input%d" i
+            let nextGate = ADD(currentOut, prevWire, currentIn)
+            build (i + 1, currentOut, nextGate :: acc)
 
-        let playersList = PassiveMul.passiveMul playersList Us
+    build (3, "w1", [firstGate])
 
-        let playersList = SecretShare.shareVm playersList
+let createAvgCircut n = 
+    let lastWire = sprintf "w%d" (n - 1)
+    List.append (createSumCircuit n) [MUL("out", lastWire,"avg")]
 
-        prettyPrintPlayerList playersList
+[<EntryPoint>]
+let main argv =
+    // NUMBER OF PLAYERS - Choose the primes used as mod i
+    let n = 17
+    let moduli = getPrimes n |> List.map (fun x -> bigint x)
+    let p0 = bigint (Prime.Numbers |> Seq.skip 1249 |> Seq.take 1 |> Seq.toList |> List.item 0)
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let c = createAvgCircut n
 
-        
-        0
+    let parties = makeParties n p0 moduli 
+    List.iter (fun p -> printf "%A " p.Input) parties
+    // ------- OFFLINE ----------
+    let partiesAfterOffline = CRTOffline.runOfflinePhase parties schemeParams
+    // ------- ONLINE ----------
+    let result = CRTOnline.runOnlinePhase partiesAfterOffline schemeParams c
+
+    0

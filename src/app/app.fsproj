@@ -14,4 +14,8 @@
     <ProjectReference Include="../protocols/protocols.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Open.Numeric.Primes" Version="4.0.4" />
+  </ItemGroup>
+
 </Project>
