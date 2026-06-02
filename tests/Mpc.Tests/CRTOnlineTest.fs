@@ -100,7 +100,7 @@ let ``Input sharing`` () =
 let ``Add gate`` () =
     let testAddGate (shares1: bigint list) (shares2: bigint list) 
                     (moduli: bigint list) (p0: bigint) (expected: bigint) =
-        let crtParams = { P0 = p0; Moduli = moduli; L = 10I }
+        let crtParams = { P0 = p0; Moduli = moduli; L = 10I; t = 1}
         let parties = moduli |> List.mapi (fun i input ->
                 {   Index = i + 1
                     Modulus = moduli.[i]
@@ -184,7 +184,7 @@ let ``Circuit emulation - multiplication gate`` () =
     let moduli  = [103I; 107I; 109I]
     let p0      = 101I
     let d       = CRTOnline.computeD 3I
-    let crtParams = { P0 = p0; Moduli = moduli; L = 1000I }
+    let crtParams = { P0 = p0; Moduli = moduli; L = 1000I; t = 1 }
 
 
     // 7 * 34 mod 101 = 238 mod 101 = 36  (34 = 3^-1 mod 101, so 7/3 = 36 mod 101... 

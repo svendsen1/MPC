@@ -83,7 +83,7 @@ let main argv =
     let n = 17
     let moduli = getPrimes n |> List.map (fun x -> bigint x)
     let p0 = bigint (Prime.Numbers |> Seq.skip 1249 |> Seq.take 1 |> Seq.toList |> List.item 0)
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1}
     let c = createAvgCircut n
 
     let parties = makeParties n p0 moduli 

@@ -73,7 +73,7 @@ module CRTOnline =
         let va = p.WireShares[a]
         let vb = p.WireShares[b]
         let masking = List.head p.R2t
-        let mi = (((va*vb) % p.Modulus) + masking) % p.Modulus
+        let mi = (va*vb) + masking
         {p with m = mi; R2t = List.tail p.R2t}
     let kingShare (p: Party list) = 
         let M = List.fold (fun acc f -> [f.m]@acc) [] p
@@ -84,21 +84,29 @@ module CRTOnline =
         CRTReconstruct.crtReconstruct shares moduli
 
     let mulProtocol (p: list<Party>) (crtParams: CrtShareParams) (out: Wire) (a: Wire) (b: Wire) =
-        // Each party sends va and vb to king (simulate by collecting)
-        let sharesA = p |> List.map (fun party -> party.WireShares.[a])
-        let sharesB = p |> List.map (fun party -> party.WireShares.[b])
-        // King reconstructs a and b
-        let aRec = CRTReconstruct.crtReconstruct sharesA crtParams.Moduli % crtParams.P0
-        let bRec = CRTReconstruct.crtReconstruct sharesB crtParams.Moduli % crtParams.P0
-        let product = aRec * bRec % crtParams.P0
-        // King reFormats product
+        // Step 1: Each party computes mi = (va * vb + R2t_head) mod pi
+        // and consumes their R2t head
+        let partiesWithMi = p |> List.map (fun party -> mulMi party a b)
+        
+        // Step 2: King collects all mi values and reconstructs m
+        // m = X*Y + R2t as an integer (reconstructed from masked shares)
+        let maskedShares = partiesWithMi |> List.map (fun party -> party.m)
+        let m = CRTReconstruct.crtReconstruct maskedShares crtParams.Moduli
+        
+        // Step 3: King reformats m
         let d = computeD (List.length p |> bigint)
-        let productBar = reFormat product crtParams.P0 d
-        // King shares productBar
-        let productShares = CRTShare.share productBar crtParams
-        // Send shares back to parties
-        let pWithShares = List.map2 (fun party share -> {party with WireShares = Map.add out share party.WireShares}) p productShares
-        pWithShares
+        let mBar = reFormat m crtParams.P0 d
+        
+        // Step 4: Each party sets output share as (mBar + Rt_head) mod pi
+        // and consumes their Rt head
+        partiesWithMi |> List.map (fun party ->
+            let rtHead = List.head party.Rt
+            let outputShare = (mBar + rtHead) % party.Modulus
+            { party with 
+                WireShares = Map.add out outputShare party.WireShares
+                Rt = List.tail party.Rt }
+        )
+
     
     let invProtocol parties crtParams a out =
         // reconstruct

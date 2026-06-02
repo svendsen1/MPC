@@ -39,5 +39,4 @@ module ExtendMath =
     
     /// Compute the power of 2 ints. Exponential opp is only allowed on floats, so convertion needed
     let pwr (x: int) (y: int) = 
-        let result = float(x) ** float(y)
-        bigint(result)
+        bigint.Pow(bigint x, y)
