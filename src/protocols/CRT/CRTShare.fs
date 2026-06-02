@@ -45,6 +45,9 @@ module CRTShare=
     let reconstruct (shares: bigint list) (p: CrtShareParams) : bigint =
         // Recover X via CRT
         let X = CRTReconstruct.crtReconstruct shares p.Moduli
-        
+        printfn "X          = %A" X
+        printfn "p0         = %A" p.P0
+        printfn "X mod p0   = %A" (X % p.P0)
+
         // Reduce mod p0 to get secret back
         X % p.P0

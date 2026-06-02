@@ -1,7 +1,6 @@
 namespace Protocols
 
 module ExtendMath =
-
     open System.Numerics
     open System.Security.Cryptography
 
@@ -41,3 +40,20 @@ module ExtendMath =
     let pwr (x: int) (y: int) = 
         let result = float(x) ** float(y)
         bigint(result)
+    let millerRabin (n: bigint) rounds =
+        // write n-1 as 2^r * d
+        let mutable r, d = 0, n - 1I
+        while d % 2I = 0I do
+            r <- r + 1
+            d <- d / 2I
+        let witnesses = Seq.take rounds (seq { 2I; 3I; 5I; 7I; 11I; 13I; 17I; 19I; 23I }) 
+        witnesses |> Seq.forall (fun a ->
+            let mutable x = bigint.ModPow(a, d, n)
+            if x = 1I || x = n - 1I then true
+            else
+                let mutable cont = true
+                for _ in 1..r-1 do
+                    if cont then
+                        x <- bigint.ModPow(x, 2I, n)
+                        if x = n - 1I then cont <- false
+                not cont)

@@ -174,12 +174,10 @@ module CRTOnline =
         // Step 1 - Input sharing
         let partiesWithInputs = shareInput parties crtParams
         
-        // Step 2 - Add public constants to wire map (e.g. inv3)
+        // Step 2 - Share public constants to wire map (e.g. inv(n))
+        // Use CRT sharing so the constant reconstructs correctly modulo p0.
         let partiesWithConstants =
-            partiesWithInputs |> List.map (fun p ->
-                { p with WireShares = 
-                            p.WireShares 
-                            |> Map.add "avg" (ExtendMath.modInverse (bigint (List.length parties)) crtParams.P0 % p.Modulus) })
+            shareValue (ExtendMath.modInverse (bigint (List.length parties)) crtParams.P0) partiesWithInputs crtParams "avg"
 
         // Step 3 - Evaluate circuit
         let partiesAfterCircuit = circuitEmulation circuit partiesWithConstants crtParams

@@ -26,9 +26,9 @@ let prettyPrintUs (Us) =
     )
     printfn""
 
-let getPrimes n =
+let getNPrimes n =
     Prime.Numbers 
-    |> Seq.skip 100000
+    |> Seq.skip 5000000
     |> Seq.take n
     |> Seq.toList
 
@@ -38,7 +38,7 @@ let makeParties (n: int) (p0: bigint) (moduli: bigint list) =
         {
             Index       = i + 1
             Modulus     = List.item i moduli
-            Input       = 1I + bigint i
+            Input       = 500I + bigint i
             si          = bigint 0
             ReceivedSt  = []
             ReceivedS2t = []
@@ -53,6 +53,79 @@ let makeParties (n: int) (p0: bigint) (moduli: bigint list) =
         }
     )
     |> fun parties ->  CRTOffline.pickSi  parties p0
+let calculateD n =
+        [1..n]
+        |> List.map (fun k -> ExtendMath.pwr k (n-k))
+        |> List.reduce (*)
+let generatePrimeAbove (minValue: bigint) : bigint =
+    let mutable candidate = minValue + 1I
+    if candidate % 2I = 0I then candidate <- candidate + 1I
+    while not (ExtendMath.millerRabin candidate 9) do
+        candidate <- candidate + 2I
+    candidate
+
+let generateNPrimesOfBitLength (n: int) (ell: int) : bigint list =
+    let lower = bigint.Pow(2I, ell - 1)
+    
+    // Estimate index of first prime >= lower using prime number theorem
+    // pi(x) ≈ x / ln(x)
+    let lowerFloat = float ell - 1.0
+    let estimatedIndex = int (System.Math.Pow(2.0, lowerFloat) / 
+                              (lowerFloat * System.Math.Log 2.0))
+    
+    // Skip to estimated position and search from there
+    Prime.Numbers
+    |> Seq.map bigint
+    |> Seq.skip (max 0 (estimatedIndex - 100))  // small buffer for estimation error
+    |> Seq.filter (fun p -> p >= lower)
+    |> Seq.distinct
+    |> Seq.take n
+    |> Seq.toList
+let generateProtocolParams (n: int) (t: int) : CrtShareParams =
+    
+    // Step 1 - Compute D
+    let d    = calculateD n
+    let logD = int (bigint.Log(d, 2.0)) + 1
+    printfn "Step 1: log2(D) = %d bits" logD
+
+    // Step 2 - Compute ell
+    // Need ell > 2*log(p0)/(n-t), and log(p0) ≈ log(D)
+    let ell = (2 * logD / (n - t)) + 2   // +2 for safety
+    printfn "Step 2: ell = %d bits per modulus" ell
+
+    // Step 3 - Generate n distinct primes of ell bits
+    let moduli = generateNPrimesOfBitLength n ell
+    let pAll   = ExtendMath.product moduli
+    printfn "Step 3: log2(P_all) = %d bits" (int (bigint.Log(pAll, 2.0)))
+
+    // Step 4 - Generate p0 just above D using Miller-Rabin
+    let p0    = generatePrimeAbove d
+    let logP0 = int (bigint.Log(p0, 2.0)) + 1
+    printfn "Step 4: log2(p0) = %d bits" logP0
+
+    // Step 5 - Compute L_t from Corollary 4
+    let logLt = t * ell + logP0
+    let lt    = bigint.Pow(2I, logLt)
+    printfn "Step 5: log2(L_t) = %d bits" logLt
+
+    // Step 6 - Validate
+    let condA = p0 > d
+    let condB = p0 < pAll
+    let condC = (lt + 1I) * p0 < pAll
+    let condD = p0 > bigint n
+
+    printfn "=== Parameter Validation ==="
+    printfn "p0 > D              = %b" condA
+    printfn "p0 < P_all          = %b" condB
+    printfn "Correctness (L+1)*p0 < P_all = %b" condC
+    printfn "p0 > n              = %b" condD
+    printfn "Download rate       = %f" (float logP0 / float (int (bigint.Log(pAll, 2.0))))
+    printfn "============================"
+
+    if not (condA && condB && condC && condD) then
+        failwithf "Parameter generation failed for n=%d t=%d" n t
+
+    { P0 = p0; Moduli = moduli; L = lt; t = t }
 
 let createSumCircuit n =
     if n < 2 then
@@ -80,17 +153,15 @@ let createAvgCircut n =
 [<EntryPoint>]
 let main argv =
     // NUMBER OF PLAYERS - Choose the primes used as mod i
-    let n = 17
-    let moduli = getPrimes n |> List.map (fun x -> bigint x)
-    let p0 = bigint (Prime.Numbers |> Seq.skip 1249 |> Seq.take 1 |> Seq.toList |> List.item 0)
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I }
+    let n = 13
+    // Generate parameters for n parties
+    let crtParams = generateProtocolParams n 1
+    let parties   = makeParties n crtParams.P0 crtParams.Moduli
     let c = createAvgCircut n
-
-    let parties = makeParties n p0 moduli 
     List.iter (fun p -> printf "%A " p.Input) parties
+    printfn ""
     // ------- OFFLINE ----------
-    let partiesAfterOffline = CRTOffline.runOfflinePhase parties schemeParams
+    let partiesAfterOffline = CRTOffline.runOfflinePhase parties crtParams
     // ------- ONLINE ----------
-    let result = CRTOnline.runOnlinePhase partiesAfterOffline schemeParams c
-
+    let result = CRTOnline.runOnlinePhase partiesAfterOffline crtParams c
     0
