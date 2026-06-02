@@ -100,7 +100,7 @@ let ``Input sharing`` () =
 let ``Add gate`` () =
     let testAddGate (shares1: bigint list) (shares2: bigint list) 
                     (moduli: bigint list) (p0: bigint) (expected: bigint) =
-        let crtParams = { P0 = p0; Moduli = moduli; L = 10I ; t = 1}
+        let crtParams = { P0 = p0; Moduli = moduli; L = 10I; t = 1}
         let parties = moduli |> List.mapi (fun i input ->
                 {   Index = i + 1
                     Modulus = moduli.[i]
