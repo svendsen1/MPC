@@ -36,7 +36,7 @@ let ``Share and Reconstruct`` () =
 
     let pAll = ExtendMath.product moduli
 
-    let schemeParams = { P0 = p0; Moduli = moduli; L = L; t = 1}
+    let schemeParams = { P0 = p0; Moduli = moduli; Lt = L; L2t = L**2; t = 1}
 
     Assert.True(CRTShare.verifyParams schemeParams)
 
@@ -57,7 +57,7 @@ let ``Share and Reconstruct`` () =
 
 [<Fact>]
 let ``King Reconstruct From example`` () =
-    let pl = {P0 = 101I; Moduli = [103I; 107I; 109I] ; L = 30I; t = 1}
+    let pl = {P0 = 101I; Moduli = [103I; 107I; 109I] ; Lt = 30I; L2t = 30I**2; t = 1}
     let m = CRTShare.reconstruct [59I; 19I; 11I] pl
 
     let mBar = CRTOnline.reFormat m pl.P0 2I
@@ -74,7 +74,7 @@ let ``Offline shares`` () =
     let p0 = 11I
     let moduli = [13I; 17I; 19I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1}
+    let schemeParams = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2; t = 1}
     let parties = CRTOffline.pickSi parties (p0 - 1I)
     let parties = CRTOffline.computeShares parties schemeParams
     let vandemonde = CRTOffline.makeVandermonde schemeParams.Moduli.Length 1
@@ -94,7 +94,7 @@ let ``Online phase`` () =
     let p0 = 101I
     let moduli = [103I; 107I; 109I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1}
+    let schemeParams = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2; t = 1}
     let parties = CRTOffline.pickSi parties (p0 - 1I)
 
     let parties = CRTOffline.computeShares parties schemeParams
@@ -125,7 +125,7 @@ let ``Online phase 2`` () =
     let p0 = 101I
     let moduli = [103I; 107I; 109I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
+    let schemeParams = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2; t = 1 }
     // ------- OFFLINE ----------
     let partiesAfterOffline = CRTOffline.runOfflinePhase parties schemeParams
     // ------- ONLINE ----------
@@ -152,7 +152,7 @@ let ``runOfflinePhases with different t and circuit sizes`` () =
 
     // Test case 1: t=1, circuit with 2 gates -> rounds = ceil(2 / (3-1)) = 1
     let parties1 = makeTestParties 3 p0 moduli
-    let params1 = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
+    let params1 = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2; t = 1 }
     let circuit1 = [ADD("w1", "input1", "input2"); MUL("out", "w1", "input3")]
     let partiesAfter1 = CRTOffline.runOfflinePhases parties1 params1 circuit1
     let expectedMasking1 = 1 * (n - 1)  // 1 round * 2 masking per party
@@ -163,7 +163,7 @@ let ``runOfflinePhases with different t and circuit sizes`` () =
 
     // Test case 2: t=1, circuit with 3 gates -> rounds = ceil(3 / 2) = 2
     let parties2 = makeTestParties 3 p0 moduli
-    let params2 = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
+    let params2 = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2; t = 1 }
     let circuit2 = [ADD("w1", "input1", "input2"); ADD("w2", "w1", "input3"); MUL("out", "w2", "input1")]
     let partiesAfter2 = CRTOffline.runOfflinePhases parties2 params2 circuit2
     let expectedMasking2 = 2 * (n - 1)  // 2 rounds * 2 masking per party
@@ -174,7 +174,7 @@ let ``runOfflinePhases with different t and circuit sizes`` () =
 
     // Test case 3: t=2, circuit with 3 gates -> rounds = ceil(3 / (3-2)) = 3
     let parties3 = makeTestParties 3 p0 moduli
-    let params3 = { P0 = p0; Moduli = moduli; L = 30I; t = 2 }
+    let params3 = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2;t = 2 }
     let circuit3 = circuit2  // Same 3 gates
     let partiesAfter3 = CRTOffline.runOfflinePhases parties3 params3 circuit3
     let expectedMasking3 = 3 * (n - 2)  // 3 rounds * 1 masking per party (n-t=1)
@@ -189,7 +189,7 @@ let ``Masking pairs are consumed sequentially`` () =
     let p0 = 101I
     let moduli = [103I; 107I; 109I]
     let parties = makeTestParties 3 p0 moduli
-    let schemeParams = { P0 = p0; Moduli = moduli; L = 30I; t = 1 }
+    let schemeParams = { P0 = p0; Moduli = moduli; Lt = 30I; L2t = 30I**2; t = 1 }
     let circuit = [MUL("out", "input1", "input2")]  // 1 MUL gate
 
     // Run offline: 1 round, 2 masking per party

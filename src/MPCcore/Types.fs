@@ -12,8 +12,9 @@ type Player = {
 type CrtShareParams = {
     P0     : bigint        // secret field modulus
     Moduli : bigint list   // party moduli p_1 ... p_n
-    L      : bigint        // randomness range
-    t      : int        // Corruption threshold, less than n/2
+    Lt     : bigint        // randomness range for t-sharings
+    L2t    : bigint        // randomness range for 2t-sharings for masknig products
+    t      : int           // Corruption threshold, less than n/2
 }
 
 type MaskPair = {

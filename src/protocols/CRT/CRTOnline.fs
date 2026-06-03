@@ -73,10 +73,10 @@ module CRTOnline =
         let va = p.WireShares[a]
         let vb = p.WireShares[b]
         let masking = List.head p.R2t
-        let mi = (va*vb) + masking
+        let mi = (((va*vb)% p.Modulus) + masking) % p.Modulus
         {p with m = mi; R2t = List.tail p.R2t}
     let kingShare (p: Party list) = 
-        let M = List.fold (fun acc f -> [f.m]@acc) [] p
+        let M = List.map (fun party -> party.m) p
         match p with
         | h::rest -> {h with kingM = M}::rest
         | _ -> failwith "Fail kingShare"
@@ -87,16 +87,12 @@ module CRTOnline =
         // Step 1: Each party computes mi = (va * vb + R2t_head) mod pi
         // and consumes their R2t head
         let partiesWithMi = p |> List.map (fun party -> mulMi party a b)
-        
         // Step 2: King collects all mi values and reconstructs m
-        // m = X*Y + R2t as an integer (reconstructed from masked shares)
-        let maskedShares = partiesWithMi |> List.map (fun party -> party.m)
-        let m = CRTReconstruct.crtReconstruct maskedShares crtParams.Moduli
-        
+        let partiesAfterKingShare = kingShare partiesWithMi
+        let M = kingReconstruct partiesAfterKingShare.Head.kingM crtParams.Moduli
         // Step 3: King reformats m
         let d = computeD (List.length p |> bigint)
-        let mBar = reFormat m crtParams.P0 d
-        
+        let mBar = reFormat M crtParams.P0 d
         // Step 4: Each party sets output share as (mBar + Rt_head) mod pi
         // and consumes their Rt head
         partiesWithMi |> List.map (fun party ->

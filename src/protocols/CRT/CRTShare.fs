@@ -6,9 +6,9 @@ module CRTShare=
     // Verify parameters are valid before using
     let verifyParams (p: CrtShareParams) : bool =
         let pAll = ExtendMath.product p.Moduli
-        let correctnessHolds = (p.L + 1I) * p.P0 < pAll
+        let correctnessHolds = (p.Lt + 1I) * p.P0 < pAll
         if correctnessHolds = false then
-            let correctnessError = sprintf "Invalid L: %A" p.L 
+            let correctnessError = sprintf "Invalid L: %A" p.Lt 
             failwith correctnessError
         
         // Check pairwise coprimality
@@ -33,7 +33,7 @@ module CRTShare=
             failwith failM
         
         // Pick random u in {0, ..., L-1}
-        let u = ExtendMath.randomBigint p.L
+        let u = ExtendMath.randomBigint p.Lt
         
         // Lift x to integer X = x + u * p0
         let X = x + u * p.P0
@@ -42,12 +42,7 @@ module CRTShare=
         List.map (fun pi -> X % pi) p.Moduli
     // Reconstruct secret from shares
     // Returns x in Z_p0
-    let reconstruct (shares: bigint list) (p: CrtShareParams) : bigint =
-        // Recover X via CRT
-        let X = CRTReconstruct.crtReconstruct shares p.Moduli
-        printfn "X          = %A" X
-        printfn "p0         = %A" p.P0
-        printfn "X mod p0   = %A" (X % p.P0)
 
-        // Reduce mod p0 to get secret back
+    let reconstruct (shares: bigint list) (p: CrtShareParams) : bigint =
+        let X = CRTReconstruct.crtReconstruct shares p.Moduli
         X % p.P0

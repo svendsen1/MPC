@@ -34,7 +34,8 @@ module PrettyPrint =
         printfn "Parameters of the protocol:"
         printfn "  P0     = %A" parameters.P0
         printfn "  Moduli = %A" parameters.Moduli
-        printfn "  L      = %A" parameters.L
+        printfn "  Lt      = %A" parameters.Lt
+        printfn "  L2t      = %A" parameters.L2t
 
     let printSi (party: Party) =
         printf "Party %d" party.Index

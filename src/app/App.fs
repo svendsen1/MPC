@@ -38,7 +38,7 @@ let makeParties (n: int) (p0: bigint) (moduli: bigint list) =
         {
             Index       = i + 1
             Modulus     = List.item i moduli
-            Input       = 500I + bigint i
+            Input       = 100I + bigint i
             si          = bigint 0
             ReceivedSt  = []
             ReceivedS2t = []
@@ -90,7 +90,12 @@ let generateProtocolParams (n: int) (t: int) : CrtShareParams =
 
     // Step 2 - Compute ell
     // Need ell > 2*log(p0)/(n-t), and log(p0) ≈ log(D)
-    let ell = (2 * logD / (n - t)) + 2   // +2 for safety
+    let logP0approx  = logD + 1  // p0 is just above D
+    let maxVandeBits = (n - t - 1) * (int (System.Math.Log(float n, 2.0)) + 1)
+    let sumBits      = int (System.Math.Log(float n, 2.0)) + 1
+    let ellFromCorr  = (maxVandeBits + 4 * logP0approx + sumBits) / (n - 2 * t) + 3
+    let ellFromRate  = (2 * logD / (n - t)) + 2
+    let ell          = max ellFromCorr ellFromRate
     printfn "Step 2: ell = %d bits per modulus" ell
 
     // Step 3 - Generate n distinct primes of ell bits
@@ -101,12 +106,14 @@ let generateProtocolParams (n: int) (t: int) : CrtShareParams =
     // Step 4 - Generate p0 just above D using Miller-Rabin
     let p0    = generatePrimeAbove d
     let logP0 = int (bigint.Log(p0, 2.0)) + 1
-    printfn "Step 4: log2(p0) = %d bits" logP0
+    printfn "Step 4: p0: %A log2(p0) = %d bits" p0 logP0
 
-    // Step 5 - Compute L_t from Corollary 4
+    // Step 5 - Compute L_t and L_2t from Corollary 4 
     let logLt = t * ell + logP0
     let lt    = bigint.Pow(2I, logLt)
-    printfn "Step 5: log2(L_t) = %d bits" logLt
+    let logL2t = 2 * t * ell + 3 * int (bigint.Log(p0,  2.0))
+    let l2t = bigint.Pow(2I, logL2t) 
+    printfn "Step 5: log2(L_t) = %d bits, log2(L_2t) = %d bits" logLt logL2t
 
     // Step 6 - Validate
     let condA = p0 > d
@@ -125,7 +132,7 @@ let generateProtocolParams (n: int) (t: int) : CrtShareParams =
     if not (condA && condB && condC && condD) then
         failwithf "Parameter generation failed for n=%d t=%d" n t
 
-    { P0 = p0; Moduli = moduli; L = lt; t = t }
+    { P0 = p0; Moduli = moduli; Lt = lt; L2t = l2t; t = t }
 
 let createSumCircuit n =
     if n < 2 then
@@ -153,7 +160,7 @@ let createAvgCircut n =
 [<EntryPoint>]
 let main argv =
     // NUMBER OF PLAYERS - Choose the primes used as mod i
-    let n = 13
+    let n = 5
     // Generate parameters for n parties
     let crtParams = generateProtocolParams n 1
     let parties   = makeParties n crtParams.P0 crtParams.Moduli
