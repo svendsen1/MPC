@@ -7,7 +7,6 @@ module CRTOnline =
     let bigint (x:int) = bigint(x)
     let factorial n : bigint = 
         [1I..n] |> List.fold (*) 1I 
-
     let computeD (n: bigint): bigint = 
         [1I..n-1I] |> List.map factorial 
                    |> List.fold (*) 1I
@@ -46,7 +45,6 @@ module CRTOnline =
         |> List.map (fun (p, share) ->
             { p with WireShares = Map.add out share p.WireShares }
         )
-
     let shareInputWithPrints (parties: list<Party>) (crtParams: CrtShareParams) =
         let d = computeD ((List.length parties) |> bigint)
         parties |> List.fold (fun updatedParties owner -> 
@@ -60,15 +58,6 @@ module CRTOnline =
                 let share = (List.item (p.Index - 1) dispList)
                 {p with WireShares = Map.add("input" + string owner.Index) share p.WireShares})
             ) parties
-            
-    let rec checkRandomness (parties: Party list) = 
-        match parties with
-        | [] -> true
-        | p::rest -> if p.Rt.IsEmpty || p.R2t.IsEmpty then  
-                        false
-                     else
-                        checkRandomness rest
-
     let mulMi (p: Party) (a: Wire) (b: Wire) = 
         let va = p.WireShares[a]
         let vb = p.WireShares[b]
@@ -82,7 +71,6 @@ module CRTOnline =
         | _ -> failwith "Fail kingShare"
     let kingReconstruct (shares: bigint list) (moduli: bigint list) =
         CRTReconstruct.crtReconstruct shares moduli
-
     let mulProtocol (p: list<Party>) (crtParams: CrtShareParams) (out: Wire) (a: Wire) (b: Wire) =
         // Step 1: Each party computes mi = (va * vb + R2t_head) mod pi
         // and consumes their R2t head
@@ -102,18 +90,6 @@ module CRTOnline =
                 WireShares = Map.add out outputShare party.WireShares
                 Rt = List.tail party.Rt }
         )
-
-    
-    let invProtocol parties crtParams a out =
-        // reconstruct
-        let shares = parties |> List.map (fun p -> Map.find a p.WireShares)
-        let y = CRTReconstruct.crtReconstruct shares crtParams.Moduli
-        if y = 0I then failwith "Cannot invert 0"
-        // invert
-        let yInv = ExtendMath.modInverse y crtParams.P0
-        // reshare
-        shareValue yInv parties crtParams out
-
     let circuitEmulation (circut: Circut) (p: list<Party>) (crtParams: CrtShareParams)=
         let rec eval (gates: Circut) (parties: list<Party>) =
             match gates with
@@ -129,29 +105,20 @@ module CRTOnline =
                                         {n with WireShares = Map.add out result n.WireShares}
                                     )
                                 | MUL (out, a, b) -> mulProtocol parties crtParams out a b
-                                | INV (out: Wire, a: Wire) -> invProtocol parties crtParams a out
                             eval rest updatedParties
         eval circut p
-
     let broadcastOutputShares (parties: Party list) (outputWire: string) : Party list =
         // Collect the output share from each party
         let broadcastValues = 
             parties |> List.map (fun p -> p.WireShares.[outputWire])
-        
+
         // Every party receives all broadcasts
         parties |> List.map (fun p ->
             { p with broadcastRecived = broadcastValues }
         )
-
     let reconstructOutput (party: Party) (parms: CrtShareParams) : bigint =
         let shares = party.broadcastRecived
-        //printfn "Reconstructing from shares: %A" shares
-        //printfn "Using moduli: %A" parms.Moduli
-        
-        let X = CRTReconstruct.crtReconstruct shares parms.Moduli
-        //printfn "Reconstructed X = %A" X
-        //printfn "X mod p0 = %A" (X % parms.P0)
-        
+        let X = CRTReconstruct.crtReconstruct shares parms.Moduli       
         X % parms.P0
 
     // Full output reconstruction — broadcast + reconstruct
@@ -159,25 +126,20 @@ module CRTOnline =
     let outputReconstruction (parties: Party list) 
                             (outputWire: string)
                             (parms: CrtShareParams) : bigint =
-
         let partiesAfterBroadcast = broadcastOutputShares parties outputWire
-
         let result = reconstructOutput partiesAfterBroadcast.Head parms
-
         let allAgree =
             partiesAfterBroadcast 
             |> List.forall (fun p -> reconstructOutput p parms = result)
 
         if not allAgree then
             failwith "Parties reconstructed different output values — protocol error"
-
         result
     
     let runOnlinePhase (parties: Party list) (crtParams: CrtShareParams) (circuit: Gate list) : bigint =
-    
         // Step 1 - Input sharing
         let partiesWithInputs = shareInput parties crtParams
-        
+
         // Step 2 - Share public constants to wire map (e.g. inv(n))
         // Use CRT sharing so the constant reconstructs correctly modulo p0.
         let partiesWithConstants =
@@ -191,8 +153,6 @@ module CRTOnline =
 
         // Print results
         printfn "=== Online Phase Results ==="
-        partiesAfterCircuit |> List.iter (fun p ->
-            printfn "Party %d output share: %A" p.Index p.WireShares.["out"])
         printfn "Reconstructed output: %A" result
         printfn "==========================="
 

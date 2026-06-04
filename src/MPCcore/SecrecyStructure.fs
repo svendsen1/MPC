@@ -11,5 +11,3 @@ module SecrecyStructure =
             | p :: tail -> putInSet tail (acc.Add (Set.singleton p))
             | [] -> acc
         putInSet players Set.empty
-
-    // TODO: Make custom secret structures

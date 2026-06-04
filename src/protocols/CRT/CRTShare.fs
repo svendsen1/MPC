@@ -31,18 +31,17 @@ module CRTShare=
         if x < 0I then
             let failM =  "Secret out of range - x:" + string(x) 
             failwith failM
-        
+
         // Pick random u in {0, ..., L-1}
         let u = ExtendMath.randomBigint p.Lt
-        
+
         // Lift x to integer X = x + u * p0
         let X = x + u * p.P0
-        
+
         // Each party i gets X mod p_i
         List.map (fun pi -> X % pi) p.Moduli
     // Reconstruct secret from shares
     // Returns x in Z_p0
-
     let reconstruct (shares: bigint list) (p: CrtShareParams) : bigint =
         let X = CRTReconstruct.crtReconstruct shares p.Moduli
         X % p.P0

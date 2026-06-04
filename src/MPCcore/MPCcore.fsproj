@@ -7,10 +7,8 @@
 
   <ItemGroup>
   <Compile Include="Types.fs" />
-  <Compile Include="Field.fs" />
-  <Compile Include="AccessStructure.fs" />
-  <Compile Include="QualifiedSet.fs" />
   <Compile Include="Player.fs" />
+  <Compile Include="SecrecyStructure.fs" />
   <Compile Include="PrettyPrint.fs"/>
 </ItemGroup>
 

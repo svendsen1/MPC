@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Tests.fs" />
+    <Compile Include="LinearMPCTests.fs" />
     <Compile Include="CRTTest.fs" />
     <Compile Include="CRTTestOffline.fs" />
     <Compile Include="CRTOnlineTest.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>

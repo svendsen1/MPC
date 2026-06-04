@@ -25,14 +25,6 @@ let prettyPrintUs (Us) =
         printfn ""
     )
     printfn""
-
-let getNPrimes n =
-    Prime.Numbers 
-    |> Seq.skip 5000000
-    |> Seq.take n
-    |> Seq.toList
-
-
 let makeParties (n: int) (p0: bigint) (moduli: bigint list) =
     List.init n (fun i ->
         {
@@ -63,7 +55,6 @@ let generatePrimeAbove (minValue: bigint) : bigint =
     while not (ExtendMath.millerRabin candidate 9) do
         candidate <- candidate + 2I
     candidate
-
 let generateNPrimesOfBitLength (n: int) (ell: int) : bigint list =
     let lower = bigint.Pow(2I, ell - 1)
     
@@ -82,7 +73,6 @@ let generateNPrimesOfBitLength (n: int) (ell: int) : bigint list =
     |> Seq.take n
     |> Seq.toList
 let generateProtocolParams (n: int) (t: int) : CrtShareParams =
-    
     // Step 1 - Compute D
     let d    = calculateD n
     let logD = int (bigint.Log(d, 2.0)) + 1
@@ -115,7 +105,7 @@ let generateProtocolParams (n: int) (t: int) : CrtShareParams =
     let l2t = bigint.Pow(2I, logL2t) 
     printfn "Step 5: log2(L_t) = %d bits, log2(L_2t) = %d bits" logLt logL2t
 
-    // Step 6 - Validate
+    // Validate
     let condA = p0 > d
     let condB = p0 < pAll
     let condC = (lt + 1I) * p0 < pAll
@@ -133,7 +123,6 @@ let generateProtocolParams (n: int) (t: int) : CrtShareParams =
         failwithf "Parameter generation failed for n=%d t=%d" n t
 
     { P0 = p0; Moduli = moduli; Lt = lt; L2t = l2t; t = t }
-
 let createSumCircuit n =
     if n < 2 then
         failwith "Need at least two inputs to create an ADD gate."
@@ -150,16 +139,13 @@ let createSumCircuit n =
             let currentIn = sprintf "input%d" i
             let nextGate = ADD(currentOut, prevWire, currentIn)
             build (i + 1, currentOut, nextGate :: acc)
-
     build (3, "w1", [firstGate])
-
 let createAvgCircut n = 
     let lastWire = sprintf "w%d" (n - 1)
     List.append (createSumCircuit n) [MUL("out", lastWire,"avg")]
-
 [<EntryPoint>]
 let main argv =
-    // NUMBER OF PLAYERS - Choose the primes used as mod i
+    // NUMBER OF PLAYERS
     let n = 5
     // Generate parameters for n parties
     let crtParams = generateProtocolParams n 1

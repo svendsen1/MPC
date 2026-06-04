@@ -74,11 +74,11 @@ module CRTOffline =
         let circuitSize = circuit.Length
         let denominator = n - parameters.t
         let rounds = (circuitSize + denominator - 1) / denominator  // ceil(circuitSize / denominator)
-        
+
         let rec runRounds parties remaining =
             if remaining = 0 then parties
             else
                 let parties = runOfflinePhase parties parameters
                 runRounds parties (remaining - 1)
-        
+
         runRounds parties rounds

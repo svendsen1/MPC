@@ -7,7 +7,7 @@ module SecretShare =
                                     //List.choose removes None auto
         let listV = players |> List.choose (fun p -> p.ResV)
         players |> List.map (fun p -> {p with V_m = listV})
-        
+
     let tSetShare (players: Player list) (sStructure: SecrecyStructure.SecrecyStructure) =
         let secrecyList = Set.toList sStructure
         let playerSet = Set.ofList players

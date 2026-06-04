@@ -9,11 +9,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MPCcore", "src\MPCcore\MPCc
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "protocols", "src\protocols\protocols.fsproj", "{4F5105F6-404E-4468-A622-B24CF1A291F5}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "sim", "src\sim\sim.fsproj", "{ADD11446-F7E3-4B82-A2DB-0366FC833969}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "app", "src\app\app.fsproj", "{141A291A-B22B-4DDC-90C6-095BEB42F807}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "experiments", "src\experiments\experiments.fsproj", "{6C5FE71B-1F85-43CF-9A6A-203F9FF94EA4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject

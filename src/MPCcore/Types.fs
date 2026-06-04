@@ -27,7 +27,7 @@ type Party = {
     Modulus : bigint
     Input : bigint 
     si : bigint
-    
+
     //Offline phase
     ReceivedSt : bigint list
     ReceivedS2t : bigint list
@@ -50,5 +50,4 @@ type Gate =
     | Input of Wire
     | ADD of Wire * Wire * Wire
     | MUL of Wire * Wire * Wire
-    | INV of Wire * Wire   // out = inv(a)
 type Circut = Gate list
