@@ -6,13 +6,14 @@ module ExtendMath =
 
     // Extended Euclidean Algorithm
     // Returns (gcd, s, t) such that a*s + b*t = gcd
-    let rec extGcd (a: bigint) (b: bigint) : bigint * bigint * bigint =
-        if b = 0I then
-            (a, 1I, 0I)
-        else
-            let (g, s, t) = extGcd b (a % b)
-            (g, t, s - (a / b) * t)
-
+    let extGcd (a: bigint) (b: bigint) : bigint * bigint * bigint =
+        let rec loop (r0: bigint) (r1: bigint) (s0: bigint) (s1: bigint) (t0: bigint) (t1: bigint) =
+            if r1 = 0I then
+                (r0, s0, t0)
+            else
+                let q = r0 / r1
+                loop r1 (r0 - q * r1) s1 (s0 - q * s1) t1 (t0 - q * t1)
+        loop a b 1I 0I 0I 1I
     // Modular inverse of a mod m
     // Throws if inverse doesn't exist
     let modInverse (a: bigint) (m: bigint) : bigint =
@@ -22,7 +23,7 @@ module ExtendMath =
         else
             ((s % m) + m) % m
 
-    // Random bigint in range [0, max)
+    // Random bigint in range [0, max]
     let randomBigint (max: bigint) : bigint =
         let rng = RandomNumberGenerator.Create()
         let bytes = Array.zeroCreate (int (bigint.Log(max, 256.0)) + 2)
