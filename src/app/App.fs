@@ -296,21 +296,22 @@ let crtParams39 =
     { P0 = p0; Moduli = moduli; Lt = lt; L2t = l2t; t = t}
 [<EntryPoint>]
 let main argv =
-    // NUMBER OF PLAYERS
-    let n = 39
-    // Generate parameters for n parties
-    // let crtParams = generateProtocolParams n 1
-    let crtParams = crtParams25
-    let crtParams = crtParams39
-    let crtParams = crtParams51
+    let runs = 5
+    let configs = [ 25, crtParams25; 39, crtParams39; 51, crtParams51 ]
 
+    for n, crtParams in configs do
+        printfn "n=%d" n
+        for run in 1..runs do
+            let parties = makeParties n crtParams.P0 crtParams.Moduli
+            let c = createAvgCircut n
 
-    let parties   = makeParties n crtParams.P0 crtParams.Moduli
-    let c = createAvgCircut n
-    List.iter (fun p -> printf "%A " p.Input) parties
-    printfn ""
-    // ------- OFFLINE ----------
-    let partiesAfterOffline = CRTOffline.runOfflinePhase parties crtParams
-    // ------- ONLINE ----------
-    let result = CRTOnline.runOnlinePhase partiesAfterOffline crtParams c
+            let swOffline = System.Diagnostics.Stopwatch.StartNew()
+            let partiesAfterOffline = CRTOffline.runOfflinePhase parties crtParams
+            swOffline.Stop()
+
+            let swOnline = System.Diagnostics.Stopwatch.StartNew()
+            let _result = CRTOnline.runOnlinePhase partiesAfterOffline crtParams c
+            swOnline.Stop()
+
+            printfn "run=%d offline_ms=%d online_ms=%d" run swOffline.ElapsedMilliseconds swOnline.ElapsedMilliseconds
     0
