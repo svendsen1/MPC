@@ -26,15 +26,15 @@ module CRTOnline =
             xBar
         else
             failwith "Unable to reFormat"
-    let shareInput (parties: list<Party>) (crtParams: CrtShareParams)=
-        let d = computeD ((List.length parties) |> bigint)
-        parties |> List.fold (fun updatedParties owner -> 
-            let xBar = reFormat owner.Input crtParams.P0 d
-            let dispList = CRTShare.share xBar crtParams
-            updatedParties |> List.map (fun p -> 
-                let share = (List.item (p.Index - 1) dispList)
-                {p with WireShares = Map.add("input" + string owner.Index) share p.WireShares})
-            ) parties
+    let shareInput (parties: list<Party>) (crtParams: CrtShareParams) =
+        let d = computeD (List.length parties |> bigint)
+        let allShares =
+            parties |> List.map (fun owner ->
+                "input" + string owner.Index, CRTShare.share (reFormat owner.Input crtParams.P0 d) crtParams)
+        parties |> List.mapi (fun i p ->
+            let newShares = List.fold (fun m (key, shares) -> Map.add key shares.[i] m) p.WireShares allShares
+            { p with WireShares = newShares })
+
     let shareValue value parties crtParams out =
         let d = computeD (bigint (List.length parties))
 
