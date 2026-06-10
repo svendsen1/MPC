@@ -23,14 +23,14 @@ module ExtendMath =
         else
             ((s % m) + m) % m
 
-    // Random bigint in range [0, max]
+    // Random bigint in range [0, max)
     let randomBigint (max: bigint) : bigint =
         let rng = RandomNumberGenerator.Create()
-        let bytes = Array.zeroCreate (int (bigint.Log(max, 256.0)) + 2)
+        let bytes = Array.zeroCreate (int (bigint.Log(max, 256.0)) + 1)
         let mutable result = max
         while result >= max do
             rng.GetBytes(bytes)
-            result <- bigint(bytes) |> abs
+            result <- bigint(bytes, isUnsigned = true)
         result
     
     /// Compute product of all elements in a list
