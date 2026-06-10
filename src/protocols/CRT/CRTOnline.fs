@@ -32,7 +32,7 @@ module CRTOnline =
             parties |> List.map (fun owner ->
                 "input" + string owner.Index, CRTShare.share (reFormat owner.Input crtParams.P0 d) crtParams)
         parties |> List.mapi (fun i p ->
-            let newShares = List.fold (fun m (key, shares) -> Map.add key shares.[i] m) p.WireShares allShares
+            let newShares = List.fold (fun m (key, shares) -> Map.add key (List.item i shares) m) p.WireShares allShares
             { p with WireShares = newShares })
 
     let shareValue value parties crtParams out =
