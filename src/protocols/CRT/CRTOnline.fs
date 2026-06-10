@@ -152,8 +152,8 @@ module CRTOnline =
         let result = outputReconstruction partiesAfterCircuit "out" crtParams
 
         // Print results
-        printfn "=== Online Phase Results ==="
-        printfn "Reconstructed output: %A" result
-        printfn "==========================="
+        //printfn "=== Online Phase Results ==="
+        //printfn "Reconstructed output: %A" result
+        //printfn "==========================="
 
         result
