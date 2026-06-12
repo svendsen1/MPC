@@ -4,6 +4,7 @@ open Open.Numeric.Primes
 open MPCcore
 open Protocols
 open System.Numerics
+open Primes
 
 let prettyPrintPlayerList (playersList: list<Player>) =
         playersList |> List.iter (fun x -> 
@@ -143,7 +144,7 @@ let createSumCircuit n =
     build (3, "w1", [firstGate])
 let createAvgCircut n = 
     let lastWire = sprintf "w%d" (n - 1)
-    List.append (createSumCircuit n) [MUL("out", lastWire,"avg")]    
+    List.append (createSumCircuit n) [MUL("out", lastWire,"avg")]
 let crtParams51 = 
     let p0 = (4713I * bigint.Pow(2I, 4713)) + 1I
     let logP0 = int (bigint.Log(p0, 2.0)) + 1
@@ -247,7 +248,7 @@ let crtParams39 =
     (*  Furey, Edward "Prime Number Calculator – Check Primality & List Factors" at 
     https://www.calculatorsoup.com/calculators/math/prime-number-calculator.php f
     rom CalculatorSoup, https://www.calculatorsoup.com - Online Calculators  *)
-    let p0 = 9948080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000281I
+    let p0 = 9500985518059895573437083210810293136561520843414324496026742705238456019053726110728620685163702321902462157817401507641507126857842299010863771853483023446088487215190554055709233820209202018937259494391729472286633625561746177154119531768876536311873254151938348786673647430383381052477950250137520276105609923971631953829151907435699324700257032668994856667729322462504627458600955733543494504454113489667991095237812384642392074670508358371024774442960888789325486530489361985904349233623566299040206123886215208905209085462239051867974430075297276681035416505111017892810313998287845251017979946583881685726331130681874907496174148642000265879437559246648340513057772278452104120902949869923080348437885464848429863494058107I
     let moduli = [ 2581313453302829445704703884274169744128499403384578730388819043457617247322951409I;
                                 2223098387332591938941818324532287879436650130419004740651967129425303430462545537I;
                                 3631266854400139742582350800721459281315251356011177180380691463446770740652335333I;
@@ -514,25 +515,54 @@ let mainTestHardC crtParams5 =
 
             printfn "%d, %d" swOffline.ElapsedMilliseconds swOnline.ElapsedMilliseconds
 
+let testT =
+    let runs = 5
+    let configs = [1, 25, crtParamsT1;3,25, crtParamsT3;5,25, crtParamsT5; 7,25, crtParamsT7; 9,25, crtParamsT9;11,25, crtParamsT11;12, 25, crtParamsT12]
+
+    for t, n, crtParams in configs do
+        for run in 1..runs do 
+            let parties = makeParties n crtParams.P0 crtParams.Moduli
+            let c = createAvgCircut n
+
+            let swOffline = System.Diagnostics.Stopwatch.StartNew()
+            let partiesAfterOffline = CRTOffline.runOfflinePhase parties crtParams
+            swOffline.Stop()
+
+            let swOnline = System.Diagnostics.Stopwatch.StartNew()
+            let _result = CRTOnline.runOnlinePhase partiesAfterOffline crtParams c
+            swOnline.Stop()
+
+            printfn "%d, %d, %d" t swOffline.ElapsedMilliseconds swOnline.ElapsedMilliseconds
 [<EntryPoint>]
 let main argv =
     // NUMBER OF PLAYERS
-    let n = 5
-    // Generate parameters for n parties
+    let n = 25
+    let ts = [1;3;5;7;9;11;12]
+    let generateProtocolParamsInner (n: int) (t: int) =
+        // Step 1 - Compute D
+        printfn "t=%d" t
+        let d    = calculateD n
+        let logD = int (bigint.Log(d, 2.0)) + 1
+        printfn "Step 1: log2(D) = %d bits" logD
 
-    let crtParams5 = generateProtocolParams n 1
-    //let crtParams = crtParams25
-    //let crtParams = crtParams39
-    //let crtParams = crtParams51
-    //mainTest crtParams5
+        // Step 2 - Compute ell
+        // Need ell > 2*log(p0)/(n-t), and log(p0) ≈ log(D)
+        let logP0approx  = logD + 1  // p0 is just above D
+        let maxVandeBits = (n - t - 1) * (int (System.Math.Log(float n, 2.0)) + 1)
+        let sumBits      = int (System.Math.Log(float n, 2.0)) + 1
+        let ellFromCorr  = (maxVandeBits + 4 * logP0approx + sumBits) / (n - 2 * t) + 3
+        let ellFromRate  = (2 * logD / (n - t)) + 2
+        let ell          = max ellFromCorr ellFromRate
+        printfn "Step 2: ell = %d bits per modulus" ell
 
-
-    //let crtParams = generateProtocolParams n 1
+    for t in ts do 
+        generateProtocolParamsInner 25 t
+    //let crtParams = generateProtocolParams 51 25
     //let parties   = makeParties n crtParams.P0 crtParams.Moduli
     //let c = createAvgCircut n
     //List.iter (fun p -> printf "%A " p.Input) parties
     //printfn ""
-    // ------- OFFLINE ----------
+    //------- OFFLINE ----------
     //let partiesAfterOffline = CRTOffline.runOfflinePhase parties crtParams
     // ------- ONLINE ----------
     //let result = CRTOnline.runOnlinePhase partiesAfterOffline crtParams c
